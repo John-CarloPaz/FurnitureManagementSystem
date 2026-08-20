@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const TOKEN_KEY = 'timbr.token'
+const TOKEN_KEY = 'cedarside.token'
 
 export const tokenStore = {
   get: () => localStorage.getItem(TOKEN_KEY),
@@ -8,9 +8,18 @@ export const tokenStore = {
   clear: () => localStorage.removeItem(TOKEN_KEY),
 }
 
-/** Axios client pointed at the Laravel API (proxied to :8000 in dev). */
+/**
+ * Backend origin. In dev this is empty → the Vite proxy forwards `/api` to :8000.
+ * In prod set `VITE_API_URL` (e.g. https://your-app.laravel.cloud) so the SPA on
+ * Vercel calls the Laravel Cloud backend directly.
+ */
+export const API_ORIGIN = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
+
+/** Absolute URL for a server-relative path (e.g. a signed 3D/proof file URL). */
+export const fileUrl = (path: string) => (/^https?:\/\//.test(path) ? path : `${API_ORIGIN}${path}`)
+
 export const api = axios.create({
-  baseURL: '/api/v1',
+  baseURL: API_ORIGIN ? `${API_ORIGIN}/api/v1` : '/api/v1',
   headers: { Accept: 'application/json' },
 })
 

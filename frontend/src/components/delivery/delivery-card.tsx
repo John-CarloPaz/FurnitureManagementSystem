@@ -3,6 +3,7 @@ import { Truck, MapPin, Camera, PackageCheck } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useDispatchDelivery, useLogLocation, useRecordProof } from '@/hooks/use-delivery'
+import { fileUrl } from '@/lib/api'
 import type { DeliveryAssignment } from '@/lib/delivery-api'
 
 const DELIVERY_COLOR: Record<string, string> = {
@@ -66,7 +67,7 @@ export function DeliveryCard({ assignment, isDriver }: { assignment: DeliveryAss
       )}
 
       {assignment.proof && (
-        <a href={assignment.proof.photo_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-sm text-walnut">
+        <a href={fileUrl(assignment.proof.photo_url)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-sm text-walnut">
           <Camera size={14} /> Proof of delivery{assignment.proof.recipient_name ? ` · ${assignment.proof.recipient_name}` : ''}
         </a>
       )}

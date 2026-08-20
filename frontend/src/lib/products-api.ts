@@ -1,4 +1,4 @@
-import { api } from './api'
+import { api, fileUrl } from './api'
 import type { ProductStatus } from './status'
 
 export interface ProductModel {
@@ -123,5 +123,5 @@ export async function uploadProductModel(productId: number, file: File, changeLo
 
 export async function getModelDownloadUrl(versionId: number): Promise<string> {
   const { data } = await api.get(`/model-versions/${versionId}/download`)
-  return data.data.url
+  return fileUrl(data.data.url)
 }
