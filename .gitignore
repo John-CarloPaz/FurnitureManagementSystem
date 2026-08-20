@@ -1,0 +1,10 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Safety net — each sub-project also ignores these locally
+**/.env
+**/vendor/
+**/node_modules/
+backend/build/
+frontend/dist/
