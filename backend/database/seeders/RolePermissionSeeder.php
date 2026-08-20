@@ -70,16 +70,18 @@ class RolePermissionSeeder extends Seeder
 
     private function seedAdmin(): void
     {
-        $password = env('ADMIN_PASSWORD');
+        // config() (not raw env()) so it survives config:cache in production.
+        $password = config('admin.password');
         if (! $password) {
             $this->command?->warn('ADMIN_PASSWORD not set — skipping admin seed.');
 
             return;
         }
 
-        User::firstOrCreate(
-            ['email' => env('ADMIN_EMAIL', 'admin@cedarside.local')],
-            ['name' => env('ADMIN_NAME', 'Cedarside Admin'), 'password' => $password, 'is_active' => true],
+        // updateOrCreate so re-seeding also resets an existing admin's password.
+        User::updateOrCreate(
+            ['email' => config('admin.email')],
+            ['name' => config('admin.name'), 'password' => $password, 'is_active' => true],
         )->syncRoles(['admin']);
     }
 }
