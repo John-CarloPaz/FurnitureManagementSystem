@@ -22,7 +22,7 @@ php -d upload_max_filesize=25M -d post_max_size=26M artisan serve      # :8000
 # frontend
 cd frontend && npm install && npm run dev                              # http://localhost:5173
 ```
-Log in as the seeded admin (`admin@timbr.local` / `password`).
+Log in as the seeded admin (`admin@cedarside.local` / `password`).
 
 ## Modules (all 11 quotation modules)
 3D Model Viewer · Manufacturing Tracking · Delivery Tracking · Order Management (FSM) ·

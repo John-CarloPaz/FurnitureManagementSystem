@@ -78,7 +78,7 @@ class RolePermissionSeeder extends Seeder
         }
 
         User::firstOrCreate(
-            ['email' => env('ADMIN_EMAIL', 'admin@timbr.local')],
+            ['email' => env('ADMIN_EMAIL', 'admin@cedarside.local')],
             ['name' => env('ADMIN_NAME', 'Cedarside Admin'), 'password' => $password, 'is_active' => true],
         )->syncRoles(['admin']);
     }

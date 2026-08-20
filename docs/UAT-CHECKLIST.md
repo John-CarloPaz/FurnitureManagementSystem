@@ -3,7 +3,7 @@
 Manual acceptance test of the golden path. Create one user per role (Users page, admin) before starting. Tick each; note defects.
 
 ## Setup
-- [ ] Seeded admin can log in (`admin@timbr.local`)
+- [ ] Seeded admin can log in (`admin@cedarside.local`)
 - [ ] Admin creates users: production manager, operative, QA tester, logistics coordinator, delivery personnel, customer
 - [ ] Sidebar shows only the modules each role may access
 

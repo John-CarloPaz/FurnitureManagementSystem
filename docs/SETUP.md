@@ -29,7 +29,7 @@ DB_PORT=5432
 DB_DATABASE=furniture_monitoring
 DB_USERNAME=postgres
 DB_PASSWORD=your_password
-ADMIN_EMAIL=admin@timbr.local
+ADMIN_EMAIL=admin@cedarside.local
 ADMIN_PASSWORD=password
 ```
 Migrate + seed roles/permissions and the admin:
@@ -50,7 +50,7 @@ npm run dev        # http://localhost:5173  (proxies /api → :8000)
 ```
 
 ## 4. Log in
-Open http://localhost:5173 → **admin@timbr.local / password** (the seeded admin sees every module).
+Open http://localhost:5173 → **admin@cedarside.local / password** (the seeded admin sees every module).
 
 Create staff/customer users under **Users**, or seed more via tinker; assign roles: `admin`, `production_manager`, `manufacturing_operative`, `logistics_coordinator`, `delivery_personnel`, `customer`, `qa_tester`.
 

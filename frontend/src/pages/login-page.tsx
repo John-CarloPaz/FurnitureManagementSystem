@@ -8,7 +8,7 @@ import { AxiosError } from 'axios'
 export function LoginPage() {
   const navigate = useNavigate()
   const loginMut = useLogin()
-  const [email, setEmail] = useState('admin@timbr.local')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
   const onSubmit = (e: FormEvent) => {
