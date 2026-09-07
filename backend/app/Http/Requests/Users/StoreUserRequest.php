@@ -9,7 +9,7 @@ class StoreUserRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; // route is guarded by permission:users.manage
+        return true; // route is guarded by permission:users.create
     }
 
     /** @return array<string, mixed> */

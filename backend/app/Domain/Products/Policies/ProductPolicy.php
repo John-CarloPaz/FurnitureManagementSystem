@@ -25,17 +25,17 @@ class ProductPolicy
 
     public function create(User $user): bool
     {
-        return $user->can('products.manage');
+        return $user->can('products.create');
     }
 
     public function update(User $user, Product $product): bool
     {
-        return $user->can('products.manage');
+        return $user->can('products.update');
     }
 
     public function delete(User $user, Product $product): bool
     {
-        return $user->can('products.manage');
+        return $user->can('products.delete');
     }
 
     public function publish(User $user, Product $product): bool

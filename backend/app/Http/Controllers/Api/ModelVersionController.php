@@ -26,7 +26,7 @@ class ModelVersionController extends Controller
         return ModelVersionResource::collection($versions);
     }
 
-    /** Upload a new .glb/.obj version for a product (products.manage). */
+    /** Upload a new .glb/.obj version for a product (products.update). */
     public function store(UploadModelVersionRequest $request, Product $product, UploadModelVersionAction $action): JsonResponse
     {
         $this->authorize('update', $product);

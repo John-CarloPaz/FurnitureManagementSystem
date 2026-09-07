@@ -10,23 +10,15 @@ import { OrderDetailPage } from '@/pages/order-detail-page'
 import { ShopFloorPage } from '@/pages/shop-floor-page'
 import { DeliveriesPage } from '@/pages/deliveries-page'
 import { AnalyticsPage } from '@/pages/analytics-page'
+import { UsersPage } from '@/pages/users-page'
+import { RolesPage } from '@/pages/roles-page'
+import { AcceptInvitationPage } from '@/pages/accept-invitation-page'
 import { ProtectedRoute } from '@/components/auth/protected-route'
 
 // Code-split: the product detail page pulls in Three.js (3D viewer).
 const ProductDetailPage = lazy(() =>
   import('@/pages/product-detail-page').then((m) => ({ default: m.ProductDetailPage })),
 )
-
-function Placeholder({ title }: { title: string }) {
-  return (
-    <div className="mx-auto max-w-6xl">
-      <h1 className="font-display text-3xl text-fg">{title}</h1>
-      <p className="mt-2 text-muted">
-        This module lands in a later milestone — see <code>docs/ROADMAP.md</code>.
-      </p>
-    </div>
-  )
-}
 
 const Loading = () => <div className="p-8 text-center text-muted">Loading…</div>
 
@@ -35,6 +27,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/invite/accept/:token" element={<AcceptInvitationPage />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<AppShell />}>
             <Route index element={<DashboardPage />} />
@@ -49,7 +42,8 @@ export default function App() {
             <Route path="shop-floor" element={<ShopFloorPage />} />
             <Route path="deliveries" element={<DeliveriesPage />} />
             <Route path="kpi" element={<AnalyticsPage />} />
-            <Route path="users" element={<Placeholder title="Users" />} />
+            <Route path="users" element={<UsersPage />} />
+            <Route path="roles" element={<RolesPage />} />
           </Route>
         </Route>
       </Routes>

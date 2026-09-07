@@ -7,6 +7,7 @@ import {
   Truck,
   BarChart3,
   Users,
+  ShieldCheck,
   LogOut,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -29,6 +30,7 @@ const NAV: NavItem[] = [
   { to: '/deliveries', label: 'Deliveries', icon: Truck, anyOf: ['delivery.view'] },
   { to: '/kpi', label: 'Analytics', icon: BarChart3, anyOf: ['kpi.view', 'kpi.view.shopfloor', 'kpi.view.delivery'] },
   { to: '/users', label: 'Users', icon: Users, anyOf: ['users.view'] },
+  { to: '/roles', label: 'Roles', icon: ShieldCheck, anyOf: ['roles.viewAny'] },
 ]
 
 export function Sidebar() {

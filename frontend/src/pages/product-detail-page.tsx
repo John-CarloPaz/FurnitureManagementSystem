@@ -32,7 +32,7 @@ export function ProductDetailPage() {
   if (!product) return <div className="p-8 text-center text-muted">Product not found.</div>
 
   const meta = PRODUCT_STATUS_META[product.status]
-  const canManage = has('products.manage')
+  const canManage = has('products.update')
   const canPublish = has('products.publish')
   const canOrder = has('orders.place') && product.status === 'PUBLISHED'
 

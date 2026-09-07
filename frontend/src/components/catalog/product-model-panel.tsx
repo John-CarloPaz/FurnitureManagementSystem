@@ -29,7 +29,7 @@ export function ProductModelPanel({ product }: { product: Product }) {
 
   const currentId = product.model?.current_version_id ?? null
   const current = versions.data?.find((v) => v.id === currentId)
-  const canManage = has('products.manage')
+  const canManage = has('products.update')
 
   useEffect(() => {
     let active = true

@@ -4,11 +4,13 @@ use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DeliveryController;
 use App\Http\Controllers\Api\DssController;
+use App\Http\Controllers\Api\InvitationController;
 use App\Http\Controllers\Api\ManufacturingController;
 use App\Http\Controllers\Api\ModelVersionController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\WorkOrderController;
 use Illuminate\Support\Facades\DB;
@@ -35,6 +37,10 @@ Route::prefix('v1')->group(function () {
 
     Route::post('/auth/login', [AuthController::class, 'login']);
 
+    // Public invitation accept flow — the token in the URL is the credential.
+    Route::get('/invitations/accept/{token}', [InvitationController::class, 'showByToken']);
+    Route::post('/invitations/accept/{token}', [InvitationController::class, 'accept']);
+
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/auth/logout', [AuthController::class, 'logout']);
         Route::get('/auth/me', [AuthController::class, 'me']);
@@ -46,7 +52,21 @@ Route::prefix('v1')->group(function () {
 
         // ---- Users ----
         Route::get('/users', [UserController::class, 'index'])->middleware('permission:users.view');
-        Route::post('/users', [UserController::class, 'store'])->middleware('permission:users.manage');
+        Route::post('/users', [UserController::class, 'store'])->middleware('permission:users.create');
+        Route::patch('/users/{user}', [UserController::class, 'update'])->middleware('permission:users.update');
+        Route::delete('/users/{user}', [UserController::class, 'destroy'])->middleware('permission:users.delete');
+
+        // ---- Roles & permissions (super-admin role builder) ----
+        Route::get('/permissions', [RoleController::class, 'permissions'])->middleware('permission:roles.viewAny');
+        Route::get('/roles', [RoleController::class, 'index'])->middleware('permission:roles.viewAny');
+        Route::post('/roles', [RoleController::class, 'store'])->middleware('permission:roles.create');
+        Route::patch('/roles/{role}', [RoleController::class, 'update'])->middleware('permission:roles.update');
+        Route::delete('/roles/{role}', [RoleController::class, 'destroy'])->middleware('permission:roles.delete');
+
+        // ---- Invitations (super-admin / admin) ----
+        Route::get('/invitations', [InvitationController::class, 'index'])->middleware('permission:invitations.viewAny');
+        Route::post('/invitations', [InvitationController::class, 'store'])->middleware('permission:invitations.create');
+        Route::delete('/invitations/{invitation}', [InvitationController::class, 'destroy'])->middleware('permission:invitations.revoke');
 
         // ---- Catalog (Products) — authorized via ProductPolicy ----
         Route::get('/products/options', [ProductController::class, 'options']); // before {product}

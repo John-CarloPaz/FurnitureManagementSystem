@@ -16,7 +16,7 @@ export function CatalogPage() {
   const create = useCreateProduct()
   const cartCount = useCart((s) => s.count())
   const [open, setOpen] = useState(false)
-  const canManage = has('products.manage')
+  const canManage = has('products.create')
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">

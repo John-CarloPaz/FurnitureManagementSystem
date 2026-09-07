@@ -1,6 +1,8 @@
 # RBAC — Roles & Permissions
 
-7 roles (single company). `spatie/laravel-permission`. Enforced via route middleware, **Policies**, and broadcast-channel auth. Least privilege.
+8 system roles (single company) **plus super-admin-defined custom roles**. `spatie/laravel-permission`. Enforced via route middleware, **Policies**, and broadcast-channel auth. Least privilege.
+
+The permission set is defined once in [`app/Domain/Access/PermissionCatalog.php`](../../backend/app/Domain/Access/PermissionCatalog.php) — the seeder, the `GET /permissions` matrix, and the super-admin **role builder** all read from it, so UI and enforcement can't drift. See [modules/user-management.md](../modules/user-management.md).
 
 Two authorization styles:
 - **Permission-based** for CRUD/module access (below).
@@ -12,7 +14,8 @@ Two authorization styles:
 
 | # | Role (slug) | Scope |
 |---|---|---|
-| 1 | `admin` | Everything: catalog, users, KPIs, audit; confirms & completes orders |
+| 0 | `super_admin` | Everything, **plus building/editing roles**. Seeded from `ADMIN_*` env. Only role that can create roles + grant the privileged roles |
+| 1 | `admin` | Everything except role mutation: catalog, users, invitations, KPIs, audit; confirms & completes orders |
 | 2 | `production_manager` | Catalog view; starts/manages production; verifies stages; shop-floor KPIs |
 | 3 | `manufacturing_operative` | Updates production stages on assigned items |
 | 4 | `logistics_coordinator` | Assigns deliveries, dispatches, on-time KPIs |
@@ -26,8 +29,10 @@ Two authorization styles:
 
 | Module | Permissions |
 |---|---|
-| Users | `users.view` `users.manage` `roles.manage` |
-| **Catalog** | `products.viewAny` (incl. drafts) · `products.browse` (published only) · `products.manage` (CRUD) · `products.publish` |
+| Users | `users.create` · `users.view` · `users.update` · `users.delete` |
+| Roles | `roles.viewAny` · `roles.create` · `roles.update` · `roles.delete` *(mutation = super_admin only)* |
+| Invitations | `invitations.viewAny` · `invitations.create` · `invitations.revoke` |
+| **Catalog** | `products.create` · `products.viewAny` (incl. drafts / "Read") · `products.update` · `products.delete` · `products.publish` · `products.browse` (published only) |
 | Orders | `orders.viewAny` · `orders.view.own` · `orders.place` · `orders.cancel` |
 | Manufacturing | `manufacturing.view` · `manufacturing.stage.update` · `manufacturing.verify` · `manufacturing.schedule` · `workorders.assign` |
 | Delivery | `delivery.view` · `delivery.assign` · `delivery.update` · `delivery.proof.upload` |
