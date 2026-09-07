@@ -126,4 +126,37 @@ class DeliveryTest extends TestCase
         // Bare transition (no proof captured) is blocked by the delivery guard.
         $this->postJson("/api/v1/orders/{$order->id}/transition", ['to' => 'DELIVERED'])->assertStatus(422);
     }
+
+    public function test_admin_can_change_delivery_status(): void
+    {
+        // Regression: admin is not a driver, but may drive any delivery (DeliveryPolicy).
+        $order = $this->order(OrderState::READY_FOR_DELIVERY);
+        $assignment = $this->assignmentFor($order, $this->userWith('delivery_personnel'));
+        Sanctum::actingAs($this->userWith('admin'));
+
+        $this->postJson("/api/v1/deliveries/{$assignment->id}/dispatch", ['manual_location' => 'HQ'])
+            ->assertOk()
+            ->assertJsonPath('data.status', 'out_for_delivery');
+
+        $this->postJson("/api/v1/deliveries/{$assignment->id}/proof", [
+            'photo' => UploadedFile::fake()->image('pod.jpg'),
+            'recipient_name' => 'Juan Dela Cruz',
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.status', 'delivered');
+
+        $this->assertDatabaseHas('orders', ['id' => $order->id, 'status' => 'DELIVERED']);
+    }
+
+    public function test_delivery_guard_reason_is_returned_to_the_client(): void
+    {
+        // The order page relies on this message; it must be the real reason, not a
+        // generic role error (an admin can perform the transition — the blocker is data).
+        $order = $this->order(OrderState::READY_FOR_DELIVERY); // no assignment yet
+        Sanctum::actingAs($this->userWith('admin'));
+
+        $this->postJson("/api/v1/orders/{$order->id}/transition", ['to' => 'OUT_FOR_DELIVERY'])
+            ->assertStatus(422)
+            ->assertJsonPath('message', 'Assign the order to a driver before dispatching.');
+    }
 }

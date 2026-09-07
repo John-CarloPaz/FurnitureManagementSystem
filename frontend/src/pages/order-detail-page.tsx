@@ -10,8 +10,15 @@ import { useProduction } from '@/hooks/use-manufacturing'
 import { ProductionItem } from '@/components/manufacturing/production-item'
 import { useAuth } from '@/hooks/use-auth'
 import { STATUS_META, peso, type OrderState } from '@/lib/status'
+import { AxiosError } from 'axios'
 
 const PRODUCTION_STATES: OrderState[] = ['IN_PRODUCTION', 'QUALITY_CHECK', 'REWORK']
+// Delivery-stage moves are driven by the Deliveries workflow (assign a driver → mark
+// picked up → capture proof). Firing them as generic FSM buttons from the order page
+// would either desync the delivery record or fail the proof guard, so they're not
+// offered here — the order page points to Deliveries instead.
+const DELIVERY_STATES: OrderState[] = ['OUT_FOR_DELIVERY', 'DELIVERED']
+const DELIVERY_HANDOFF_STATES: OrderState[] = ['READY_FOR_DELIVERY', 'OUT_FOR_DELIVERY']
 
 function ProductionSection({ orderId }: { orderId: number }) {
   const { data } = useProduction(orderId)
@@ -26,12 +33,22 @@ function ProductionSection({ orderId }: { orderId: number }) {
   )
 }
 
-function TransitionActions({ orderId, status, allowed }: { orderId: number; status: OrderState; allowed: OrderState[] }) {
+function TransitionActions({ orderId, allowed }: { orderId: number; allowed: OrderState[] }) {
   const transition = useTransition(orderId)
   const { has } = useAuth()
   // Staff see every allowed transition their role owns; customers only Cancel.
-  const visible = has('orders.viewAny') ? allowed : allowed.filter((s) => s === 'CANCELLED')
+  // Delivery-stage moves are excluded here — they belong to the Deliveries workflow.
+  const base = has('orders.viewAny') ? allowed : allowed.filter((s) => s === 'CANCELLED')
+  const visible = base.filter((s) => !DELIVERY_STATES.includes(s))
   if (!visible.length) return null
+
+  // Surface the server's actual reason (guard message / 403) rather than assuming it's
+  // always a role problem — admins can perform every transition, so the old blanket
+  // "your role can't perform that transition" message was misleading.
+  const error = transition.isError
+    ? ((transition.error as AxiosError<{ message?: string }>).response?.data?.message ??
+      "That transition isn't allowed right now.")
+    : null
 
   return (
     <Card className="space-y-2">
@@ -49,9 +66,27 @@ function TransitionActions({ orderId, status, allowed }: { orderId: number; stat
           </Button>
         ))}
       </div>
-      {transition.isError && (
-        <p className="text-sm text-[var(--status-danger)]">Your role can't perform that transition from {STATUS_META[status].label}.</p>
-      )}
+      {error && <p className="text-sm text-[var(--status-danger)]">{error}</p>}
+    </Card>
+  )
+}
+
+/** Delivery-stage orders are advanced from the Deliveries page (driver assignment + proof). */
+function DeliveryHandoff({ status }: { status: OrderState }) {
+  const { has } = useAuth()
+  if (!has('delivery.view') || !DELIVERY_HANDOFF_STATES.includes(status)) return null
+
+  return (
+    <Card className="space-y-2">
+      <p className="text-xs font-medium uppercase tracking-wide text-muted">Delivery</p>
+      <p className="text-sm text-muted">
+        {status === 'READY_FOR_DELIVERY'
+          ? 'Assign a driver and mark this order picked up from the Deliveries page.'
+          : 'Log location and capture proof of delivery from the Deliveries page.'}
+      </p>
+      <Link to="/deliveries" className="inline-flex w-fit items-center gap-1.5 text-sm text-walnut hover:underline">
+        Go to Deliveries →
+      </Link>
     </Card>
   )
 }
@@ -159,7 +194,8 @@ export function OrderDetailPage() {
         </div>
 
         <div className="space-y-6 lg:col-span-2">
-          <TransitionActions orderId={order.id} status={order.status} allowed={order.allowed_transitions} />
+          <TransitionActions orderId={order.id} allowed={order.allowed_transitions} />
+          <DeliveryHandoff status={order.status} />
 
           <Card className="space-y-2 text-sm">
             <p className="text-xs font-medium uppercase tracking-wide text-muted">Payment</p>
