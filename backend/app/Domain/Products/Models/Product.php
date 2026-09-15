@@ -2,6 +2,7 @@
 
 namespace App\Domain\Products\Models;
 
+use App\Domain\ModelGeneration\Models\ModelGeneration;
 use App\Domain\Models3D\Models\Model3D;
 use App\Domain\Products\Enums\ProductStatus;
 use App\Models\User;
@@ -69,6 +70,18 @@ class Product extends Model
     public function model(): HasOne
     {
         return $this->hasOne(Model3D::class);
+    }
+
+    /** @return HasMany<ModelGeneration, $this> */
+    public function modelGenerations(): HasMany
+    {
+        return $this->hasMany(ModelGeneration::class);
+    }
+
+    /** @return HasOne<ModelGeneration, $this> */
+    public function latestModelGeneration(): HasOne
+    {
+        return $this->hasOne(ModelGeneration::class)->latestOfMany();
     }
 
     /** @return BelongsTo<User, $this> */

@@ -6,6 +6,7 @@ import {
   fetchProduct,
   fetchProductVersions,
   fetchProducts,
+  generateProductModel,
   updateProduct,
   uploadProductModel,
   type ProductInput,
@@ -27,14 +28,31 @@ export function useProducts(status?: string) {
 }
 
 export function useProduct(id: number) {
-  return useQuery({ queryKey: ['products', id], queryFn: () => fetchProduct(id), enabled: !!id })
+  return useQuery({
+    queryKey: ['products', id],
+    queryFn: () => fetchProduct(id),
+    enabled: !!id,
+    // Poll while a 3D model is being generated so the viewer appears when it's ready.
+    refetchInterval: (query) => {
+      const status = query.state.data?.model_generation?.status
+      return status === 'pending' || status === 'processing' ? 4000 : false
+    },
+  })
 }
 
 export function useCreateProduct() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (payload: ProductInput) => createProduct(payload),
+    mutationFn: (vars: { payload: ProductInput; image?: File }) => createProduct(vars.payload, vars.image),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['products'] }),
+  })
+}
+
+export function useGenerateProductModel(id: number) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (image?: File) => generateProductModel(id, image),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['products', id] }),
   })
 }
 

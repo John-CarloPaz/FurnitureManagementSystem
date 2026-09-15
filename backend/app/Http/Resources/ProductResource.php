@@ -44,6 +44,13 @@ class ProductResource extends JsonResource
                 'path' => $img->path,
                 'is_primary' => $img->is_primary,
             ])),
+            'model_generation' => $this->whenLoaded('latestModelGeneration', fn () => $this->latestModelGeneration ? [
+                'id' => $this->latestModelGeneration->id,
+                'status' => $this->latestModelGeneration->status->value,
+                'status_label' => $this->latestModelGeneration->status->label(),
+                'progress' => $this->latestModelGeneration->progress,
+                'error' => $this->latestModelGeneration->error,
+            ] : null),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

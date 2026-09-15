@@ -75,6 +75,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/products/{product}', [ProductController::class, 'show']);
         Route::patch('/products/{product}', [ProductController::class, 'update']);
         Route::delete('/products/{product}', [ProductController::class, 'destroy']);
+        Route::post('/products/{product}/generate-model', [ProductController::class, 'generateModel']);
         Route::post('/products/{product}/publish', [ProductController::class, 'publish']);
         Route::post('/products/{product}/unpublish', [ProductController::class, 'unpublish']);
         Route::post('/products/{product}/archive', [ProductController::class, 'archive']);

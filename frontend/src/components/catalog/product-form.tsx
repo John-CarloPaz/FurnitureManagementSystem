@@ -27,10 +27,12 @@ export function ProductForm({
   initial?: Partial<Product>
   submitLabel: string
   submitting: boolean
-  onSubmit: (data: ProductInput) => void
+  onSubmit: (data: ProductInput, image?: File) => void
   onCancel?: () => void
 }) {
   const { data: options } = useCatalogOptions()
+  const isCreate = !initial
+  const [image, setImage] = useState<File | undefined>()
   const [v, setV] = useState({
     name: initial?.name ?? '',
     category: initial?.category ?? '',
@@ -49,20 +51,23 @@ export function ProductForm({
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
-    onSubmit({
-      name: v.name,
-      category: v.category || null,
-      material: v.material || null,
-      wood_type: v.wood_type || null,
-      finish: v.finish || null,
-      base_price: num(String(v.base_price)) ?? undefined,
-      lead_time_days: num(v.lead_time_days),
-      width_cm: num(String(v.width_cm)),
-      depth_cm: num(String(v.depth_cm)),
-      height_cm: num(String(v.height_cm)),
-      weight_kg: num(String(v.weight_kg)),
-      description: v.description || null,
-    })
+    onSubmit(
+      {
+        name: v.name,
+        category: v.category || null,
+        material: v.material || null,
+        wood_type: v.wood_type || null,
+        finish: v.finish || null,
+        base_price: num(String(v.base_price)) ?? undefined,
+        lead_time_days: num(v.lead_time_days),
+        width_cm: num(String(v.width_cm)),
+        depth_cm: num(String(v.depth_cm)),
+        height_cm: num(String(v.height_cm)),
+        weight_kg: num(String(v.weight_kg)),
+        description: v.description || null,
+      },
+      image,
+    )
   }
 
   const dropdowns: { key: keyof typeof v; label: string; opts?: string[] }[] = [
@@ -86,6 +91,24 @@ export function ProductForm({
           <input required value={v.name} onChange={(e) => set('name', e.target.value)} className={inputCls} />
         </Field>
       </div>
+
+      {isCreate && (
+        <div className="sm:col-span-2">
+          <Field label="Product photo">
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={(e) => setImage(e.target.files?.[0])}
+              className={inputCls}
+            />
+            <p className="mt-1 text-xs text-muted">
+              {options?.model_generation_enabled
+                ? 'We’ll generate the 3D model from this photo automatically after you create the listing.'
+                : 'Adds a listing photo. You can upload a .glb 3D model on the next screen.'}
+            </p>
+          </Field>
+        </div>
+      )}
 
       {dropdowns.map(({ key, label, opts }) => (
         <Field key={key} label={label}>

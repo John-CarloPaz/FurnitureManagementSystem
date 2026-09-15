@@ -28,6 +28,8 @@ class StoreProductRequest extends FormRequest
             'weight_kg' => ['nullable', 'numeric', 'min:0'],
             'base_price' => ['nullable', 'numeric', 'min:0'],
             'lead_time_days' => ['nullable', 'integer', 'min:0'],
+            // Optional photo — when present (and a provider is configured) it drives 3D generation.
+            'image' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:10240'],
         ];
     }
 }

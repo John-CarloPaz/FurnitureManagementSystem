@@ -12,6 +12,16 @@ export interface ProductImage {
   is_primary: boolean
 }
 
+export type GenerationStatus = 'pending' | 'processing' | 'succeeded' | 'failed'
+
+export interface ProductModelGeneration {
+  id: number
+  status: GenerationStatus
+  status_label: string
+  progress: number
+  error: string | null
+}
+
 export interface Product {
   id: number
   name: string
@@ -34,6 +44,7 @@ export interface Product {
   published_at: string | null
   model?: ProductModel | null
   images?: ProductImage[]
+  model_generation?: ProductModelGeneration | null
   created_at: string
   updated_at: string
 }
@@ -83,6 +94,17 @@ export interface CatalogOptions {
   materials: string[]
   wood_types: string[]
   finishes: string[]
+  model_generation_enabled: boolean
+}
+
+/** Build multipart form data from a product payload + optional photo. */
+function toFormData(payload: ProductInput, image: File): FormData {
+  const form = new FormData()
+  Object.entries(payload).forEach(([key, value]) => {
+    if (value !== null && value !== undefined) form.append(key, String(value))
+  })
+  form.append('image', image)
+  return form
 }
 
 export async function fetchCatalogOptions(): Promise<CatalogOptions> {
@@ -90,8 +112,19 @@ export async function fetchCatalogOptions(): Promise<CatalogOptions> {
   return data.data
 }
 
-export async function createProduct(payload: ProductInput): Promise<Product> {
-  const { data } = await api.post('/products', payload)
+export async function createProduct(payload: ProductInput, image?: File): Promise<Product> {
+  // With a photo we post multipart so the backend can auto-generate the 3D model.
+  const { data } = image
+    ? await api.post('/products', toFormData(payload, image))
+    : await api.post('/products', payload)
+  return data.data
+}
+
+/** Re-run 3D generation for a product — from a new photo, or (no file) the last one used. */
+export async function generateProductModel(productId: number, image?: File): Promise<Product> {
+  const form = new FormData()
+  if (image) form.append('image', image)
+  const { data } = await api.post(`/products/${productId}/generate-model`, form)
   return data.data
 }
 

@@ -48,7 +48,7 @@ export function CatalogPage() {
             submitLabel="Create product"
             submitting={create.isPending}
             onCancel={() => setOpen(false)}
-            onSubmit={(payload) => create.mutate(payload, { onSuccess: (p) => navigate(`/catalog/${p.id}`) })}
+            onSubmit={(payload, image) => create.mutate({ payload, image }, { onSuccess: (p) => navigate(`/catalog/${p.id}`) })}
           />
         </Card>
       )}
