@@ -30,7 +30,7 @@ class OrderPolicy
 
     public function recordPayment(User $user, Order $order): bool
     {
-        return $user->hasRole('admin');
+        return $user->isAdministrator();
     }
 
     /**
@@ -40,7 +40,7 @@ class OrderPolicy
      */
     public function transition(User $user, Order $order, ?OrderState $to = null): bool
     {
-        if ($user->hasRole('admin')) {
+        if ($user->isAdministrator()) {
             return true;
         }
         if ($to === null) {

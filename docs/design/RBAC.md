@@ -14,7 +14,7 @@ Two authorization styles:
 
 | # | Role (slug) | Scope |
 |---|---|---|
-| 0 | `super_admin` | Everything, **plus building/editing roles**. Seeded from `ADMIN_*` env. Only role that can create roles + grant the privileged roles |
+| 0 | `super_admin` | Strict **superset of admin** (gets the admin bypass in every policy — `User::isAdministrator()`) **plus building/editing roles**. Seeded from `ADMIN_*` env. Only role that can create roles + grant the privileged roles. The one account that can see & do everything. |
 | 1 | `admin` | Everything except role mutation: catalog, users, invitations, KPIs, audit; confirms & completes orders |
 | 2 | `production_manager` | Catalog view; starts/manages production; verifies stages; shop-floor KPIs |
 | 3 | `manufacturing_operative` | Updates production stages on assigned items |

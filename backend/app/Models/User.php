@@ -57,4 +57,14 @@ class User extends Authenticatable
             'is_active' => 'boolean',
         ];
     }
+
+    /**
+     * An administrator for authorization purposes — super_admin is a strict superset
+     * of admin, so both get the admin bypass in policies (order transitions, payments,
+     * delivery). super_admin additionally owns role management.
+     */
+    public function isAdministrator(): bool
+    {
+        return $this->hasAnyRole(['super_admin', 'admin']);
+    }
 }

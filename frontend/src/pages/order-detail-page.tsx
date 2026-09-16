@@ -131,7 +131,8 @@ export function OrderDetailPage() {
   if (isLoading) return <div className="p-8 text-center text-muted">Loading…</div>
   if (!order) return <div className="p-8 text-center text-muted">Order not found.</div>
 
-  const isAdmin = user?.roles.includes('admin') ?? false
+  // super_admin is a superset of admin (matches the backend policies).
+  const isAdmin = !!user?.roles.some((r) => r === 'admin' || r === 'super_admin')
   const showProduction = has('manufacturing.view') && PRODUCTION_STATES.includes(order.status)
 
   return (

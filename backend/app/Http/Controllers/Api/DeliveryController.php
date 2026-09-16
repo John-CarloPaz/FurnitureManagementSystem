@@ -33,7 +33,7 @@ class DeliveryController extends Controller
         $query = DeliveryAssignment::query()->with(['order.customer', 'driver'])->latest();
 
         $user = $request->user();
-        if (! $user?->hasRole('admin') && ! $user?->can('delivery.assign')) {
+        if (! $user?->isAdministrator() && ! $user?->can('delivery.assign')) {
             $query->where('driver_id', $user?->id);
         }
 

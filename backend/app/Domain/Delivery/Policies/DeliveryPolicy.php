@@ -19,7 +19,7 @@ class DeliveryPolicy
         }
 
         // Coordinators/admin see all; drivers see only their own assignments.
-        return $user->hasRole('admin')
+        return $user->isAdministrator()
             || $user->can('delivery.assign')
             || $assignment->driver_id === $user->id;
     }
@@ -32,7 +32,7 @@ class DeliveryPolicy
     /** Dispatch + location logging — the assigned driver (or admin). */
     public function update(User $user, DeliveryAssignment $assignment): bool
     {
-        if ($user->hasRole('admin')) {
+        if ($user->isAdministrator()) {
             return true;
         }
 
@@ -41,7 +41,7 @@ class DeliveryPolicy
 
     public function recordProof(User $user, DeliveryAssignment $assignment): bool
     {
-        if ($user->hasRole('admin')) {
+        if ($user->isAdministrator()) {
             return true;
         }
 
