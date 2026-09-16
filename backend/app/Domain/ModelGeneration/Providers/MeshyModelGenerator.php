@@ -31,8 +31,11 @@ class MeshyModelGenerator implements ModelGenerator
             'image_url' => $imageDataUri,
             'ai_model' => config('model_generation.meshy.ai_model'),
             'topology' => config('model_generation.meshy.topology'),
+            // Remesh so target_polycount is honoured — otherwise the mesh is huge.
+            'should_remesh' => (bool) config('model_generation.meshy.should_remesh'),
             'target_polycount' => (int) config('model_generation.meshy.target_polycount'),
             'should_texture' => (bool) config('model_generation.meshy.should_texture'),
+            'texture_resolution' => config('model_generation.meshy.texture_resolution'),
             'target_formats' => ['glb'],
         ]);
 

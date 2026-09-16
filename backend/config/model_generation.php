@@ -24,7 +24,11 @@ return [
         'endpoint' => env('MESHY_ENDPOINT', 'https://api.meshy.ai/openapi/v1'),
         'ai_model' => env('MESHY_AI_MODEL', 'latest'),
         'topology' => env('MESHY_TOPOLOGY', 'triangle'),
-        'target_polycount' => (int) env('MESHY_TARGET_POLYCOUNT', 30000),
+        // Remesh to a web-friendly polycount — without this the raw mesh is huge (tens
+        // of MB) and stalls the browser viewer. Keep textures at the 2k minimum.
+        'should_remesh' => (bool) env('MESHY_SHOULD_REMESH', true),
+        'target_polycount' => (int) env('MESHY_TARGET_POLYCOUNT', 18000),
         'should_texture' => (bool) env('MESHY_SHOULD_TEXTURE', true),
+        'texture_resolution' => env('MESHY_TEXTURE_RESOLUTION', '2k'),
     ],
 ];
