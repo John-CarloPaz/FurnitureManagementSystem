@@ -1,7 +1,22 @@
-import { api } from './api'
+import { api, fileUrl } from './api'
 
 export type StageName = 'cutting' | 'assembly' | 'sanding' | 'finishing' | 'qc'
 export type StageStatus = 'pending' | 'in_progress' | 'done' | 'blocked'
+
+export interface QcPhoto {
+  id: number
+  url: string
+}
+
+export interface QualityInspection {
+  id: number
+  passed: boolean
+  reason: string | null
+  attempt: number
+  inspector: string | null
+  photos: QcPhoto[]
+  created_at: string
+}
 
 export interface Stage {
   id: number
@@ -24,6 +39,7 @@ export interface ProductionItem {
   quantity: number
   percent: number
   stages: Stage[]
+  qc_inspections?: QualityInspection[]
 }
 
 export interface ShopFloorOrder {
@@ -63,3 +79,19 @@ export async function completeStage(
   })
   return data.data
 }
+
+/** QC verdict. A fail carries a reason + defect photos and sends the item back through production. */
+export async function recordQualityInspection(
+  itemId: number,
+  input: { passed: boolean; reason?: string; photos?: File[] },
+): Promise<QualityInspection> {
+  const form = new FormData()
+  form.append('passed', input.passed ? '1' : '0')
+  if (input.reason) form.append('reason', input.reason)
+  input.photos?.forEach((photo) => form.append('photos[]', photo))
+  const { data } = await api.post(`/order-items/${itemId}/qc`, form)
+  return data.data
+}
+
+/** Absolute URL for a signed QC photo path. */
+export const qcPhotoUrl = (path: string) => fileUrl(path)

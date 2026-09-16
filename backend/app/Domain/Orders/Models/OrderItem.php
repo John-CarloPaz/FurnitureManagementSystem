@@ -3,11 +3,13 @@
 namespace App\Domain\Orders\Models;
 
 use App\Domain\Manufacturing\Models\ManufacturingStage;
+use App\Domain\Manufacturing\Models\QualityInspection;
 use App\Domain\Manufacturing\Models\WorkOrder;
 use App\Domain\Products\Models\Product;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * @property int $id
@@ -48,6 +50,18 @@ class OrderItem extends Model
     public function stages(): HasMany
     {
         return $this->hasMany(ManufacturingStage::class);
+    }
+
+    /** @return HasMany<QualityInspection, $this> */
+    public function qualityInspections(): HasMany
+    {
+        return $this->hasMany(QualityInspection::class)->orderByDesc('attempt');
+    }
+
+    /** @return HasOne<QualityInspection, $this> */
+    public function latestQualityInspection(): HasOne
+    {
+        return $this->hasOne(QualityInspection::class)->latestOfMany();
     }
 
     /** @return HasMany<WorkOrder, $this> */

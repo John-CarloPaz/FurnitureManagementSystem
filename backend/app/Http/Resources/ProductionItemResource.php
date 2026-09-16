@@ -19,6 +19,7 @@ class ProductionItemResource extends JsonResource
             'quantity' => $this->quantity,
             'percent' => ProductionProgress::itemPercent($this->resource),
             'stages' => ManufacturingStageResource::collection($this->whenLoaded('stages')),
+            'qc_inspections' => QualityInspectionResource::collection($this->whenLoaded('qualityInspections')),
         ];
     }
 }

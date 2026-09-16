@@ -17,6 +17,13 @@ Each item gets 5 stages on entering production: `cutting, assembly, sanding, fin
 
 **Delay detection:** on completion, a stage is flagged `is_delayed` if its duration exceeded `expected_minutes` (defaults per stage in `StageType`).
 
+## Quality inspection & rework
+QC is recorded per item via `POST /order-items/{item}/qc` (`manufacturing.verify`), captured as a **`QualityInspection`** (pass/fail, reason, `attempt`, defect **photos**):
+- **Pass** → the QC stage closes (`done`, `qc_passed = true`).
+- **Fail** → the reason + photos are stored, **all of the item's stages reset to `pending`** (so it repeats cutting → … → QC and the progress bar drops to 0%), and the order is auto-sent to **REWORK**. `attempt` increments each cycle, keeping a defect history.
+
+Photos stream through a signed, session-less route `GET /quality-photos/{photo}/file` (`quality-photos.file`, `signed:relative`), mirroring proof-of-delivery. Handled by `RecordQualityInspectionAction`; the shop-floor item resource exposes `qc_inspections` (newest first) and the SPA surfaces the latest failure's reason + thumbnails.
+
 ## FSM guards (registered by `ManufacturingServiceProvider`)
 - `IN_PRODUCTION → QUALITY_CHECK` — all items' **Finishing** done.
 - `QUALITY_CHECK → READY_FOR_DELIVERY` — all items' **QC** done + passed.
@@ -27,7 +34,8 @@ Each item gets 5 stages on entering production: `cutting, assembly, sanding, fin
 | GET | `/api/v1/shop-floor` | `manufacturing.view` | live board: orders in production/QC/rework with item progress + delays |
 | GET | `/api/v1/orders/{order}/production` | `manufacturing.view` | production detail for one order |
 | POST | `/api/v1/order-items/{item}/stages/{stage}/start` | per-stage¹ | start a stage |
-| POST | `/api/v1/order-items/{item}/stages/{stage}/complete` | per-stage¹ | complete (+`qc_passed` for QC); delay computed |
+| POST | `/api/v1/order-items/{item}/stages/{stage}/complete` | per-stage¹ | complete a production stage; delay computed |
+| POST | `/api/v1/order-items/{item}/qc` | `manufacturing.verify` | QC verdict; a fail carries `reason` + `photos[]`, resets stages, reworks the order |
 | POST | `/api/v1/order-items/{item}/stages/{stage}/flag` | per-stage¹ | mark blocked with a note |
 | GET/POST | `/api/v1/work-orders` · PATCH `/work-orders/{id}` | `manufacturing.view` / `workorders.assign` | assign operatives to items |
 

@@ -102,6 +102,8 @@ Route::prefix('v1')->group(function () {
         Route::post('/order-items/{orderItem}/stages/{stage}/start', [ManufacturingController::class, 'startStage']);
         Route::post('/order-items/{orderItem}/stages/{stage}/complete', [ManufacturingController::class, 'completeStage']);
         Route::post('/order-items/{orderItem}/stages/{stage}/flag', [ManufacturingController::class, 'flagStage']);
+        // QC verdict (pass, or fail with reason + defect photos → item repeats production).
+        Route::post('/order-items/{orderItem}/qc', [ManufacturingController::class, 'qc']);
 
         // ---- Work orders (assign operatives to items) ----
         Route::get('/work-orders', [WorkOrderController::class, 'index'])->middleware('permission:manufacturing.view');
@@ -132,6 +134,11 @@ Route::prefix('v1')->group(function () {
     // Signed, session-less proof-photo stream.
     Route::get('/delivery-proofs/{proof}/file', [DeliveryController::class, 'file'])
         ->name('delivery-proofs.file')
+        ->middleware('signed:relative');
+
+    // Signed, session-less QC defect-photo stream.
+    Route::get('/quality-photos/{photo}/file', [ManufacturingController::class, 'photo'])
+        ->name('quality-photos.file')
         ->middleware('signed:relative');
 
     // Signed, session-less 3D file stream (temporary URL from /download).

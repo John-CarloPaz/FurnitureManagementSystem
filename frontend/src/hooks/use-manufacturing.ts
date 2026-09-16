@@ -3,6 +3,7 @@ import {
   completeStage,
   fetchProduction,
   fetchShopFloor,
+  recordQualityInspection,
   startStage,
   type StageName,
 } from '@/lib/manufacturing-api'
@@ -23,12 +24,12 @@ export function useProduction(orderId: number) {
 
 /** Stage mutations that refresh the shop-floor + production views + the order. */
 export function useStageActions(orderId?: number) {
-  const qc = useQueryClient()
+  const queryClient = useQueryClient()
   const invalidate = () => {
-    qc.invalidateQueries({ queryKey: ['shop-floor'] })
+    queryClient.invalidateQueries({ queryKey: ['shop-floor'] })
     if (orderId) {
-      qc.invalidateQueries({ queryKey: ['production', orderId] })
-      qc.invalidateQueries({ queryKey: ['orders', orderId] })
+      queryClient.invalidateQueries({ queryKey: ['production', orderId] })
+      queryClient.invalidateQueries({ queryKey: ['orders', orderId] })
     }
   }
 
@@ -41,6 +42,11 @@ export function useStageActions(orderId?: number) {
       completeStage(vars.itemId, vars.stage, vars.qcPassed),
     onSuccess: invalidate,
   })
+  const qc = useMutation({
+    mutationFn: (vars: { itemId: number; passed: boolean; reason?: string; photos?: File[] }) =>
+      recordQualityInspection(vars.itemId, { passed: vars.passed, reason: vars.reason, photos: vars.photos }),
+    onSuccess: invalidate,
+  })
 
-  return { start, complete }
+  return { start, complete, qc }
 }
