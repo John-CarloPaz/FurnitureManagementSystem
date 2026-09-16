@@ -59,7 +59,7 @@ class ModelVersionController extends Controller
     /** Stream the file — protected by the signed URL only. */
     public function file(Model3DVersion $version): StreamedResponse
     {
-        return Storage::disk('local')->download(
+        return Storage::download(
             $version->file_path,
             "model-v{$version->version}.{$version->format}",
         );

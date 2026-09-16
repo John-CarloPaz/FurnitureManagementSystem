@@ -87,7 +87,7 @@ class ManufacturingController extends Controller
     /** Stream a QC defect photo — protected by the signed URL only. */
     public function photo(QualityInspectionPhoto $photo): StreamedResponse
     {
-        return Storage::disk('local')->download($photo->path);
+        return Storage::download($photo->path);
     }
 
     public function flagStage(Request $request, OrderItem $orderItem, string $stage): ManufacturingStageResource

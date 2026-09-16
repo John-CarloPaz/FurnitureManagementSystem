@@ -25,7 +25,7 @@ Deploy the **backend first** (you need its URL for the frontend), then the front
    APP_URL=https://<your-app>.laravel.cloud
    APP_KEY=            # generate (dashboard button or `php artisan key:generate --show`)
    CORS_ALLOWED_ORIGINS=https://<your-frontend>.vercel.app   # set after step 2 below
-   FILESYSTEM_DISK=s3      # + bucket creds (see Storage) — for 3D + proof files
+   FILESYSTEM_DISK=s3      # + bucket creds (see Storage) — for ALL uploaded assets
    MAIL_MAILER=smtp        # + SMTP creds (order/status emails)
    BROADCAST_CONNECTION=pusher   # + PUSHER_* (optional live updates)
    ADMIN_EMAIL=admin@cedarside.local
@@ -36,7 +36,7 @@ Deploy the **backend first** (you need its URL for the frontend), then the front
    `php artisan db:seed --class=RolePermissionSeeder --force`
 7. **Enable** the **queue worker** (notifications) and the **scheduler** (monthly `orders:archive`) — both are toggles in Laravel Cloud.
 8. **PHP limits**: raise `upload_max_filesize` / `post_max_size` to **≥ 25M** (3D uploads up to 20 MB).
-9. **Storage**: 3D + proof files must live on durable storage. Attach an S3-compatible bucket (or Laravel Cloud object storage) and set `FILESYSTEM_DISK` + the bucket env. The signed URLs keep working (they point at the API, which streams from the disk).
+9. **Storage (S3)**: every uploaded asset — product images, AI-generated & manual 3D models, QC defect photos, delivery proofs — is written to the **default disk**, so setting `FILESYSTEM_DISK=s3` sends them all to the bucket. The S3 adapter (`league/flysystem-aws-s3-v3`) is already a tracked dependency. Set `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_DEFAULT_REGION`, `AWS_BUCKET` (+ `AWS_URL`/`AWS_ENDPOINT` for S3-compatible providers). The bucket stays **private** — files are streamed through the API's signed routes, so no S3 CORS or public-read policy is needed, and the signed URLs keep working unchanged. (Assets already written to the local disk before the switch won't migrate automatically.)
 
 Copy the resulting API URL (e.g. `https://cedarside.laravel.cloud`).
 

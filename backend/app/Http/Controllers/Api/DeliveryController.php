@@ -137,7 +137,7 @@ class DeliveryController extends Controller
     /** Stream a proof photo — protected by the signed URL only. */
     public function file(ProofOfDelivery $proof): StreamedResponse
     {
-        return Storage::disk('local')->download($proof->photo_path);
+        return Storage::download($proof->photo_path);
     }
 
     private function full(DeliveryAssignment $assignment): DeliveryAssignment
