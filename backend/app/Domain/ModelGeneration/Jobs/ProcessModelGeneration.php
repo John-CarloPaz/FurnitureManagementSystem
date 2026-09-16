@@ -83,8 +83,21 @@ class ProcessModelGeneration implements ShouldQueue
         }
 
         $body = Http::timeout(60)->get($result->glbUrl)->throw()->body();
+        if (strlen($body) === 0) {
+            $this->fail($generation, 'The provider returned an empty model file. Please try again.');
+
+            return;
+        }
+
+        // Persist to the app's default disk. On the s3 disk `throw` is off, so a failed
+        // upload returns false silently — verify it landed, else fail loudly (no phantom
+        // version with no file behind it, which would hang the viewer forever).
         $path = "models/products/{$generation->product_id}/generated-{$generation->id}.glb";
-        Storage::put($path, $body);
+        if (! Storage::put($path, $body) || ! Storage::exists($path)) {
+            $this->fail($generation, 'The model was generated but could not be saved. Check the app\'s file storage ('.(string) config('filesystems.default').') configuration.');
+
+            return;
+        }
 
         $version = $versions->record(
             $generation->product,

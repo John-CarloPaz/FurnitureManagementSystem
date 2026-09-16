@@ -125,6 +125,31 @@ class ModelGenerationTest extends TestCase
         Storage::disk('local')->assertExists("models/products/{$product->id}/generated-{$gen->id}.glb");
     }
 
+    public function test_job_fails_when_the_stored_model_file_is_empty(): void
+    {
+        config(['model_generation.meshy.key' => 'test-key']);
+        Queue::fake();
+        Http::fake([
+            '*image-to-3d' => Http::response(['result' => 'task-e']),
+            '*image-to-3d/*' => Http::response(['status' => 'SUCCEEDED', 'progress' => 100, 'model_urls' => ['glb' => 'https://assets.meshy.ai/empty.glb']]),
+            '*.glb' => Http::response('', 200), // empty download → no phantom version
+        ]);
+
+        $product = Product::create(['name' => 'Vase', 'slug' => 'vase', 'base_price' => 400]);
+        $imagePath = UploadedFile::fake()->image('vase.jpg')->store("product-images/{$product->id}");
+        $gen = $product->modelGenerations()->create(['image_path' => $imagePath, 'provider' => 'meshy', 'status' => 'pending']);
+
+        $generator = app(ModelGenerator::class);
+        $versions = app(UploadModelVersionAction::class);
+        (new ProcessModelGeneration($gen->id))->handle($generator, $versions); // submit
+        (new ProcessModelGeneration($gen->id))->handle($generator, $versions); // poll → empty → fail
+
+        $gen->refresh();
+        $this->assertSame('failed', $gen->status->value);
+        $this->assertNull($gen->model_version_id);
+        $this->assertDatabaseCount('model_3d_versions', 0); // no phantom version
+    }
+
     public function test_job_marks_failed_when_the_provider_fails(): void
     {
         config(['model_generation.meshy.key' => 'test-key']);
