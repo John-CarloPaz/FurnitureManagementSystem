@@ -60,6 +60,19 @@ class Product extends Model
         ];
     }
 
+    /** e.g. "W120 × D80 × H75 cm" from the present dimensions. */
+    public function dimensionsLabel(): ?string
+    {
+        $parts = [];
+        foreach (['W' => $this->width_cm, 'D' => $this->depth_cm, 'H' => $this->height_cm] as $prefix => $value) {
+            if ($value !== null) {
+                $parts[] = $prefix.rtrim(rtrim((string) $value, '0'), '.');
+            }
+        }
+
+        return $parts ? implode(' × ', $parts).' cm' : null;
+    }
+
     /** @return HasMany<ProductImage, $this> */
     public function images(): HasMany
     {

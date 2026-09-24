@@ -2,11 +2,12 @@ import { useState, type FormEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import { Logo } from '@/components/brand/logo'
 import { useLogin } from '@/hooks/use-auth'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { AxiosError } from 'axios'
 
 export function LoginPage() {
   const navigate = useNavigate()
+  const [params] = useSearchParams()
   const loginMut = useLogin()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -15,7 +16,15 @@ export function LoginPage() {
     e.preventDefault()
     loginMut.mutate(
       { email, password },
-      { onSuccess: () => navigate('/', { replace: true }) },
+      {
+        onSuccess: (data) => {
+          const next = params.get('next')
+          if (next) return navigate(next, { replace: true })
+          // Staff land in the CRM; customers land in the storefront.
+          const isStaff = data.user.roles.some((r) => r !== 'customer')
+          navigate(isStaff ? '/' : '/shop', { replace: true })
+        },
+      },
     )
   }
 
@@ -71,6 +80,11 @@ export function LoginPage() {
             {loginMut.isPending ? 'Signing in…' : 'Sign in'}
           </Button>
         </div>
+
+        <p className="text-center text-sm text-muted">
+          New customer? <Link to="/register" className="text-walnut hover:underline">Create an account</Link>
+          {' · '}<Link to="/shop" className="text-walnut hover:underline">Browse the shop</Link>
+        </p>
       </form>
     </div>
   )

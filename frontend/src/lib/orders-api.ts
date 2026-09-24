@@ -1,6 +1,7 @@
 import { api } from './api'
 import type { OrderState } from './status'
 import type { Paginated } from './products-api'
+import type { DeliveryEvent, DeliveryProof } from './delivery-api'
 
 export interface OrderItem {
   id: number
@@ -37,6 +38,8 @@ export interface OrderDelivery {
   status: string
   status_label: string
   batch_label: string | null
+  events?: DeliveryEvent[]
+  proof?: DeliveryProof | null
 }
 
 export interface Order {

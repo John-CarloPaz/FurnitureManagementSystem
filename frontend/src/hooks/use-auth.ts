@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { getMe, login, logout, updateProfile, type ProfileInput } from '@/lib/auth-api'
+import { getMe, login, logout, register, updateProfile, type ProfileInput, type RegisterInput } from '@/lib/auth-api'
 import { tokenStore } from '@/lib/api'
 
 /** Fetch the current user (only if a token exists). */
@@ -25,6 +25,17 @@ export function useLogin() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (vars: { email: string; password: string }) => login(vars.email, vars.password),
+    onSuccess: (res) => {
+      tokenStore.set(res.token)
+      qc.setQueryData(['me'], res.user)
+    },
+  })
+}
+
+export function useRegister() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: RegisterInput) => register(payload),
     onSuccess: (res) => {
       tokenStore.set(res.token)
       qc.setQueryData(['me'], res.user)

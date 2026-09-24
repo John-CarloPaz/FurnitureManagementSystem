@@ -22,6 +22,19 @@ export async function login(email: string, password: string): Promise<LoginRespo
   return data.data
 }
 
+export interface RegisterInput {
+  name: string
+  username: string
+  email: string
+  password: string
+  password_confirmation: string
+}
+
+export async function register(payload: RegisterInput): Promise<LoginResponse> {
+  const { data } = await api.post('/auth/register', payload)
+  return data.data
+}
+
 export async function getMe(): Promise<User> {
   const { data } = await api.get('/auth/me')
   return data.data

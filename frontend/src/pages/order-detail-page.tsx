@@ -9,6 +9,7 @@ import { useOrder, useRecordPayment, useTransition } from '@/hooks/use-orders'
 import { useProduction } from '@/hooks/use-manufacturing'
 import { useDrivers, useReassignDriver } from '@/hooks/use-delivery'
 import { ProductionItem } from '@/components/manufacturing/production-item'
+import { DeliveryTracking } from '@/components/delivery/delivery-tracking'
 import { useAuth } from '@/hooks/use-auth'
 import { apiError } from '@/lib/api-error'
 import { STATUS_META, peso, type OrderState } from '@/lib/status'
@@ -89,18 +90,18 @@ function DeliverySection({ order }: { order: Order }) {
   const drivers = useDrivers(editable)
   const reassign = useReassignDriver(order.id)
 
-  if (!has('delivery.view')) return null
-
-  // No assignment yet → point to the Deliveries page for the handoff states.
+  // No assignment yet → staff see a handoff hint; customers simply see nothing yet.
   if (!delivery) {
-    if (!DELIVERY_HANDOFF_STATES.includes(order.status)) return null
-    return (
-      <Card className="space-y-2">
-        <p className="text-xs font-medium uppercase tracking-wide text-muted">Delivery</p>
-        <p className="text-sm text-muted">Assign a driver and dispatch this order from the Deliveries page.</p>
-        <Link to="/deliveries" className="inline-flex w-fit items-center gap-1.5 text-sm text-walnut hover:underline">Go to Deliveries →</Link>
-      </Card>
-    )
+    if (has('delivery.view') && DELIVERY_HANDOFF_STATES.includes(order.status)) {
+      return (
+        <Card className="space-y-2">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted">Delivery</p>
+          <p className="text-sm text-muted">Assign a driver and dispatch this order from the Deliveries page.</p>
+          <Link to="/deliveries" className="inline-flex w-fit items-center gap-1.5 text-sm text-walnut hover:underline">Go to Deliveries →</Link>
+        </Card>
+      )
+    }
+    return null
   }
 
   const color = DELIVERY_STATUS_COLOR[delivery.status] ?? 'var(--status-neutral)'
@@ -114,7 +115,7 @@ function DeliverySection({ order }: { order: Order }) {
         </span>
       </div>
       <div className="flex justify-between text-sm"><span className="text-muted">Driver</span><span className="text-fg">{delivery.driver ?? 'Unassigned'}</span></div>
-      {delivery.batch_label && (
+      {has('delivery.view') && delivery.batch_label && (
         <div className="flex justify-between text-sm"><span className="text-muted">Batch</span><span className="text-fg">{delivery.batch_label}</span></div>
       )}
 
@@ -134,7 +135,14 @@ function DeliverySection({ order }: { order: Order }) {
         </div>
       )}
 
-      <Link to="/deliveries" className="inline-flex w-fit items-center gap-1.5 text-sm text-walnut hover:underline">Manage in Deliveries →</Link>
+      <div className="border-t border-border pt-3">
+        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">Tracking</p>
+        <DeliveryTracking delivery={delivery} />
+      </div>
+
+      {has('delivery.view') && (
+        <Link to="/deliveries" className="inline-flex w-fit items-center gap-1.5 text-sm text-walnut hover:underline">Manage in Deliveries →</Link>
+      )}
     </Card>
   )
 }

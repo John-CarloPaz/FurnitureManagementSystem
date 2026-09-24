@@ -12,7 +12,9 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\RegisterController;
 use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\Api\StorefrontController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\WorkOrderController;
 use Illuminate\Support\Facades\DB;
@@ -38,6 +40,12 @@ Route::prefix('v1')->group(function () {
     });
 
     Route::post('/auth/login', [AuthController::class, 'login']);
+    Route::post('/auth/register', [RegisterController::class, 'register']); // public customer sign-up
+
+    // Public marketplace — browse published products without an account.
+    Route::get('/shop/products', [StorefrontController::class, 'products']);
+    Route::get('/shop/products/{product}', [StorefrontController::class, 'product']);
+    Route::get('/shop/product-images/{image}/file', [StorefrontController::class, 'image']);
 
     // Public invitation accept flow — the token in the URL is the credential.
     Route::get('/invitations/accept/{token}', [InvitationController::class, 'showByToken']);

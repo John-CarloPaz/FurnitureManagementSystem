@@ -1,14 +1,20 @@
 import { create } from 'zustand'
-import type { Product } from '@/lib/products-api'
+
+/** Minimal product shape the cart needs — satisfied by both the CRM Product and the storefront product. */
+export interface CartProduct {
+  id: number
+  name: string
+  base_price: string
+}
 
 export interface CartItem {
-  product: Product
+  product: CartProduct
   quantity: number
 }
 
 interface CartState {
   items: CartItem[]
-  add: (product: Product) => void
+  add: (product: CartProduct) => void
   setQty: (productId: number, quantity: number) => void
   remove: (productId: number) => void
   clear: () => void

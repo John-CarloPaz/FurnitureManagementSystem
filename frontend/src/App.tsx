@@ -15,11 +15,20 @@ import { UsersPage } from '@/pages/users-page'
 import { RolesPage } from '@/pages/roles-page'
 import { AuditPage } from '@/pages/audit-page'
 import { AcceptInvitationPage } from '@/pages/accept-invitation-page'
+import { RegisterPage } from '@/pages/register-page'
+import { StorefrontLayout } from '@/components/storefront/storefront-layout'
+import { StorefrontHome } from '@/pages/storefront/storefront-home'
+import { StorefrontCart } from '@/pages/storefront/storefront-cart'
+import { StorefrontOrders } from '@/pages/storefront/storefront-orders'
+import { StorefrontOrderDetail } from '@/pages/storefront/storefront-order-detail'
 import { ProtectedRoute } from '@/components/auth/protected-route'
 
-// Code-split: the product detail page pulls in Three.js (3D viewer).
+// Code-split: 3D-viewer pages pull in Three.js.
 const ProductDetailPage = lazy(() =>
   import('@/pages/product-detail-page').then((m) => ({ default: m.ProductDetailPage })),
+)
+const StorefrontProduct = lazy(() =>
+  import('@/pages/storefront/storefront-product').then((m) => ({ default: m.StorefrontProduct })),
 )
 
 const Loading = () => <div className="p-8 text-center text-muted">Loading…</div>
@@ -29,7 +38,18 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
         <Route path="/invite/accept/:token" element={<AcceptInvitationPage />} />
+
+        {/* Public marketplace storefront */}
+        <Route path="/shop" element={<StorefrontLayout />}>
+          <Route index element={<StorefrontHome />} />
+          <Route path="product/:id" element={<Suspense fallback={<Loading />}><StorefrontProduct /></Suspense>} />
+          <Route path="cart" element={<StorefrontCart />} />
+          <Route path="orders" element={<StorefrontOrders />} />
+          <Route path="orders/:id" element={<StorefrontOrderDetail />} />
+        </Route>
+
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<AppShell />}>
             <Route index element={<DashboardPage />} />
