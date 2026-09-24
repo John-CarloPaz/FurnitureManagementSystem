@@ -27,6 +27,19 @@ export async function getMe(): Promise<User> {
   return data.data
 }
 
+export interface ProfileInput {
+  name?: string
+  username?: string
+  password?: string
+  password_confirmation?: string
+  current_password?: string
+}
+
+export async function updateProfile(payload: ProfileInput): Promise<User> {
+  const { data } = await api.patch('/auth/profile', payload)
+  return data.data
+}
+
 export async function logout(): Promise<void> {
   try {
     await api.post('/auth/logout')

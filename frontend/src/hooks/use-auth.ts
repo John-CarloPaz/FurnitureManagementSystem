@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { getMe, login, logout } from '@/lib/auth-api'
+import { getMe, login, logout, updateProfile, type ProfileInput } from '@/lib/auth-api'
 import { tokenStore } from '@/lib/api'
 
 /** Fetch the current user (only if a token exists). */
@@ -28,6 +28,17 @@ export function useLogin() {
     onSuccess: (res) => {
       tokenStore.set(res.token)
       qc.setQueryData(['me'], res.user)
+    },
+  })
+}
+
+export function useUpdateProfile() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: ProfileInput) => updateProfile(payload),
+    onSuccess: (user) => {
+      qc.setQueryData(['me'], user)
+      qc.invalidateQueries({ queryKey: ['users'] })
     },
   })
 }

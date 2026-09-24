@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\ModelVersionController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\WorkOrderController;
@@ -45,6 +46,7 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/auth/logout', [AuthController::class, 'logout']);
         Route::get('/auth/me', [AuthController::class, 'me']);
+        Route::patch('/auth/profile', [ProfileController::class, 'update']); // self-service profile
 
         // ---- Notifications (own, in-app) ----
         Route::get('/notifications', [NotificationController::class, 'index']);

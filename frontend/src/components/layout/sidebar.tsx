@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard,
@@ -13,6 +14,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Logo } from '@/components/brand/logo'
+import { ProfileModal } from '@/components/profile/profile-modal'
 import { useAuth, useLogout } from '@/hooks/use-auth'
 
 type NavItem = {
@@ -39,6 +41,7 @@ export function Sidebar() {
   const navigate = useNavigate()
   const { user, hasAny } = useAuth()
   const logout = useLogout()
+  const [profileOpen, setProfileOpen] = useState(false)
 
   const items = NAV.filter((item) => !item.anyOf || hasAny(item.anyOf))
   const initials =
@@ -87,14 +90,20 @@ export function Sidebar() {
         ))}
       </nav>
 
-      <div className="flex items-center gap-3 border-t border-border p-4">
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-2 text-sm font-medium text-fg">
-          {initials}
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium text-fg">{user?.name ?? 'User'}</p>
-          <p className="truncate text-xs text-muted">{user?.email ?? ''}</p>
-        </div>
+      <div className="flex items-center gap-2 border-t border-border p-3">
+        <button
+          onClick={() => setProfileOpen(true)}
+          title="Edit your profile"
+          className="flex min-w-0 flex-1 items-center gap-3 rounded-[var(--radius-sm)] p-1.5 text-left transition-colors hover:bg-surface-2"
+        >
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-2 text-sm font-medium text-fg">
+            {initials}
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium text-fg">{user?.username || user?.name || 'User'}</p>
+            <p className="truncate text-xs text-muted">{user?.email ?? ''}</p>
+          </div>
+        </button>
         <button
           onClick={onLogout}
           aria-label="Sign out"
@@ -103,6 +112,8 @@ export function Sidebar() {
           <LogOut size={16} />
         </button>
       </div>
+
+      <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} />
     </aside>
   )
 }
