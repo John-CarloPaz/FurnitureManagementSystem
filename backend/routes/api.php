@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AnalyticsController;
+use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DeliveryController;
 use App\Http\Controllers\Api\DssController;
@@ -119,6 +120,9 @@ Route::prefix('v1')->group(function () {
         Route::post('/deliveries/{assignment}/dispatch', [DeliveryController::class, 'dispatchDelivery']);
         Route::post('/deliveries/{assignment}/location', [DeliveryController::class, 'location']);
         Route::post('/deliveries/{assignment}/proof', [DeliveryController::class, 'proof']);
+
+        // ---- Audit log (who edited what) ----
+        Route::get('/audit-logs', [AuditLogController::class, 'index'])->middleware('permission:audit.view');
 
         // ---- Analytics / KPIs ----
         Route::get('/kpi', [AnalyticsController::class, 'dashboard'])->middleware('permission:kpi.view');

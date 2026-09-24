@@ -1,5 +1,6 @@
 <?php
 
+use App\Domain\Audit\AuditServiceProvider;
 use App\Domain\Delivery\DeliveryServiceProvider;
 use App\Domain\Dss\DssServiceProvider;
 use App\Domain\Manufacturing\ManufacturingServiceProvider;
@@ -11,6 +12,7 @@ use App\Providers\AppServiceProvider;
 
 return [
     AppServiceProvider::class,
+    AuditServiceProvider::class,
     OrdersServiceProvider::class,
     ProductsServiceProvider::class,
     ManufacturingServiceProvider::class,

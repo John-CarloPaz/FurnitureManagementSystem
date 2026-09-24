@@ -8,6 +8,7 @@ import {
   BarChart3,
   Users,
   ShieldCheck,
+  ScrollText,
   LogOut,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -31,6 +32,7 @@ const NAV: NavItem[] = [
   { to: '/kpi', label: 'Analytics', icon: BarChart3, anyOf: ['kpi.view', 'kpi.view.shopfloor', 'kpi.view.delivery'] },
   { to: '/users', label: 'Users', icon: Users, anyOf: ['users.view'] },
   { to: '/roles', label: 'Roles', icon: ShieldCheck, anyOf: ['roles.viewAny'] },
+  { to: '/audit', label: 'Audit Log', icon: ScrollText, anyOf: ['audit.view'] },
 ]
 
 export function Sidebar() {

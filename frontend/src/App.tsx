@@ -12,6 +12,7 @@ import { DeliveriesPage } from '@/pages/deliveries-page'
 import { AnalyticsPage } from '@/pages/analytics-page'
 import { UsersPage } from '@/pages/users-page'
 import { RolesPage } from '@/pages/roles-page'
+import { AuditPage } from '@/pages/audit-page'
 import { AcceptInvitationPage } from '@/pages/accept-invitation-page'
 import { ProtectedRoute } from '@/components/auth/protected-route'
 
@@ -44,6 +45,7 @@ export default function App() {
             <Route path="kpi" element={<AnalyticsPage />} />
             <Route path="users" element={<UsersPage />} />
             <Route path="roles" element={<RolesPage />} />
+            <Route path="audit" element={<AuditPage />} />
           </Route>
         </Route>
       </Routes>
