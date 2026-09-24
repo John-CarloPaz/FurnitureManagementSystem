@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Domain\Audit\AuditRecorder;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Users\StoreUserRequest;
 use App\Http\Requests\Users\UpdateUserRequest;
@@ -32,14 +33,20 @@ class UserController extends Controller
     }
 
     /** Rename, activate/deactivate, or re-role a user (permission: users.update). */
-    public function update(UpdateUserRequest $request, User $user): UserResource
+    public function update(UpdateUserRequest $request, User $user, AuditRecorder $audit): UserResource
     {
         $this->assertNotSelf($request, $user, 'You cannot change your own account here.');
 
-        $user->fill($request->safe()->only('name', 'is_active'))->save();
+        $user->fill($request->safe()->only('name', 'is_active'))->save(); // name/is_active audited by the observer
 
         if ($request->filled('role')) {
-            $user->syncRoles([$request->string('role')]);
+            $oldRole = $user->getRoleNames()->first();
+            $newRole = (string) $request->string('role');
+            if ($oldRole !== $newRole) {
+                $user->syncRoles([$newRole]);
+                // Role assignment is a pivot change → log it explicitly.
+                $audit->log('updated', 'User', $user->id, ['role' => ['old' => $oldRole, 'new' => $newRole]]);
+            }
         }
 
         return new UserResource($user->refresh());

@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Download } from 'lucide-react'
 import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { useAuditLogs } from '@/hooks/use-audit'
-import type { AuditEvent, AuditLog } from '@/lib/audit-api'
+import { exportAuditLogs, type AuditEvent, type AuditLog } from '@/lib/audit-api'
 
 const METHOD_COLOR: Record<string, string> = {
   POST: 'var(--status-success)',
@@ -56,16 +57,39 @@ function Changes({ log }: { log: AuditLog }) {
 export function AuditPage() {
   const [page, setPage] = useState(1)
   const [event, setEvent] = useState<AuditEvent | 'all'>('all')
+  const [exporting, setExporting] = useState(false)
   const { data, isLoading, isFetching } = useAuditLogs(page, { event: event === 'all' ? undefined : event })
 
   const rows = data?.data ?? []
   const meta = data?.meta
 
+  const onExport = async () => {
+    setExporting(true)
+    try {
+      const blob = await exportAuditLogs({ event: event === 'all' ? undefined : event })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `audit-log-${new Date().toISOString().slice(0, 10)}.csv`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+    } finally {
+      setExporting(false)
+    }
+  }
+
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <div>
-        <h1 className="font-display text-3xl text-fg">Audit Log</h1>
-        <p className="mt-1 text-muted">Who edited what — every change, with the fields that changed.</p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="font-display text-3xl text-fg">Audit Log</h1>
+          <p className="mt-1 text-muted">Who edited what — every change, with the fields that changed.</p>
+        </div>
+        <Button variant="secondary" size="pill" onClick={onExport} disabled={exporting || !rows.length}>
+          <Download size={16} /> {exporting ? 'Exporting…' : 'Export CSV'}
+        </Button>
       </div>
 
       <div className="flex flex-wrap gap-2">

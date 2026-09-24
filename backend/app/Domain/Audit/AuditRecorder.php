@@ -19,6 +19,33 @@ class AuditRecorder
     /** Field-name needles whose VALUES are masked (records that they changed, not the value). */
     private const REDACT = ['password', 'token', 'secret', 'phone', 'address'];
 
+    /**
+     * Record a change that isn't a single Eloquent event — e.g. a role's permission
+     * grants or a user's role assignment (both live in pivot tables the observer can't see).
+     *
+     * @param  array<string, mixed>|null  $changes
+     */
+    public function log(string $event, string $entityType, ?int $entityId, ?array $changes = null): void
+    {
+        $user = Auth::user();
+        if ($user === null) {
+            return;
+        }
+
+        AuditLog::create([
+            'user_id' => Auth::id(),
+            'user_name' => $user->name,
+            'event' => $event,
+            'method' => request()->method(),
+            'path' => request()->path(),
+            'auditable_type' => $entityType,
+            'auditable_id' => $entityId,
+            'changes' => $changes,
+            'ip_address' => request()->ip(),
+            'created_at' => now(),
+        ]);
+    }
+
     public function record(Model $model, string $event): void
     {
         $user = Auth::user();

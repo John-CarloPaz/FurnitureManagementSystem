@@ -29,3 +29,8 @@ export async function fetchAuditLogs(params?: {
   const { data } = await api.get('/audit-logs', { params })
   return data
 }
+
+export async function exportAuditLogs(params?: { entity?: string; event?: AuditEvent }): Promise<Blob> {
+  const { data } = await api.get('/audit-logs/export', { params, responseType: 'blob' })
+  return data
+}

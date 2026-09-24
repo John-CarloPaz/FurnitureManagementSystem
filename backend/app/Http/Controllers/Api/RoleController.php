@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Domain\Access\PermissionCatalog;
+use App\Domain\Audit\AuditRecorder;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Roles\StoreRoleRequest;
 use App\Http\Requests\Roles\UpdateRoleRequest;
@@ -35,27 +36,50 @@ class RoleController extends Controller
         return response()->json(['data' => PermissionCatalog::GROUPS]);
     }
 
-    public function store(StoreRoleRequest $request): JsonResponse
+    public function store(StoreRoleRequest $request, AuditRecorder $audit): JsonResponse
     {
+        $permissions = $request->validated('permissions');
         $role = Role::create(['name' => $request->string('name'), 'guard_name' => 'web']);
-        $role->syncPermissions($request->validated('permissions'));
+        $role->syncPermissions($permissions);
+
+        $audit->log('created', 'Role', $role->id, ['name' => $role->name, 'permissions' => $permissions]);
 
         return (new RoleResource($role->setAttribute('users_count', $role->users()->count())))->response()->setStatusCode(201);
     }
 
-    public function update(UpdateRoleRequest $request, Role $role): RoleResource
+    public function update(UpdateRoleRequest $request, Role $role, AuditRecorder $audit): RoleResource
     {
         $this->assertNotSystemRole($role, 'System roles cannot be edited.');
+
+        $before = $role->getPermissionNames()->all();
+        $oldName = $role->name;
 
         if ($request->filled('name')) {
             $role->update(['name' => $request->string('name')]);
         }
-        $role->syncPermissions($request->validated('permissions'));
+        $after = $request->validated('permissions');
+        $role->syncPermissions($after);
+
+        // Audit the real change: permission grants/revokes live in a pivot table, so
+        // the model observer never sees them.
+        $changes = [];
+        if ($role->name !== $oldName) {
+            $changes['name'] = ['old' => $oldName, 'new' => $role->name];
+        }
+        if ($added = array_values(array_diff($after, $before))) {
+            $changes['permissions_added'] = $added;
+        }
+        if ($removed = array_values(array_diff($before, $after))) {
+            $changes['permissions_removed'] = $removed;
+        }
+        if ($changes) {
+            $audit->log('updated', 'Role', $role->id, $changes);
+        }
 
         return new RoleResource($role->setAttribute('users_count', $role->users()->count()));
     }
 
-    public function destroy(Role $role): JsonResponse
+    public function destroy(Role $role, AuditRecorder $audit): JsonResponse
     {
         $this->assertNotSystemRole($role, 'System roles cannot be deleted.');
 
@@ -65,7 +89,11 @@ class RoleController extends Controller
             ]);
         }
 
+        $id = $role->id;
+        $name = $role->name;
         $role->delete();
+
+        $audit->log('deleted', 'Role', $id, ['name' => $name]);
 
         return response()->json(null, 204);
     }

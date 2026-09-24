@@ -11,10 +11,14 @@ An immutable trail of **who edited what**: every authenticated create/update/del
 ## Data
 `audit_logs`: `user_id` + `user_name` (who) · `event` (created/updated/deleted) · `method` (POST/PATCH/DELETE) · `path` · `auditable_type` + `auditable_id` (what) · `changes` (JSON diff) · `ip_address` · `created_at` (append-only, no `updated_at`).
 
+## Role & permission changes
+Permission grants/revokes and user role assignments live in **pivot tables** the model observer can't see, so they're logged explicitly at the point of change: `RoleController` records role create/update/delete with a `permissions_added` / `permissions_removed` diff, and `UserController` records a user's `role` change (`old → new`).
+
 ## API & UI
 | Method | Path | Guard |
 |---|---|---|
 | GET | `/api/v1/audit-logs?page=&event=&entity=&user_id=` | `audit.view` |
+| GET | `/api/v1/audit-logs/export` (CSV, same filters) | `audit.view` |
 
 Frontend: `/audit` (`pages/audit-page.tsx`), sidebar **Audit Log** (shown to holders of `audit.view` — admin, super_admin, qa_tester). Table: When · Who · Method · Entity + event · Fields changed (rendered `field: old → new`), with an event filter and pagination.
 

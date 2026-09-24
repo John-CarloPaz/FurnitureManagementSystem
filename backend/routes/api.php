@@ -122,6 +122,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/deliveries/{assignment}/proof', [DeliveryController::class, 'proof']);
 
         // ---- Audit log (who edited what) ----
+        Route::get('/audit-logs/export', [AuditLogController::class, 'export'])->middleware('permission:audit.view'); // before {index}
         Route::get('/audit-logs', [AuditLogController::class, 'index'])->middleware('permission:audit.view');
 
         // ---- Analytics / KPIs ----

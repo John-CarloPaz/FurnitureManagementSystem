@@ -78,9 +78,40 @@ class AuditLogTest extends TestCase
     {
         Sanctum::actingAs($this->userWith('customer'));
         $this->getJson('/api/v1/audit-logs')->assertForbidden();
+        $this->getJson('/api/v1/audit-logs/export')->assertForbidden();
 
         // qa_tester holds audit.view.
         Sanctum::actingAs($this->userWith('qa_tester'));
         $this->getJson('/api/v1/audit-logs')->assertOk()->assertJsonStructure(['data', 'meta']);
+    }
+
+    public function test_role_and_permission_changes_are_audited(): void
+    {
+        Sanctum::actingAs($this->userWith('super_admin'));
+
+        $roleId = $this->postJson('/api/v1/roles', ['name' => 'Rider', 'permissions' => ['delivery.view']])
+            ->assertCreated()->json('data.id');
+
+        $this->assertDatabaseHas('audit_logs', ['event' => 'created', 'auditable_type' => 'Role', 'auditable_id' => $roleId]);
+
+        $this->patchJson("/api/v1/roles/{$roleId}", ['permissions' => ['delivery.view', 'delivery.update']])->assertOk();
+
+        $log = AuditLog::where('auditable_type', 'Role')->where('event', 'updated')->latest('id')->first();
+        $this->assertNotNull($log);
+        $this->assertSame('PATCH', $log->method);
+        $this->assertContains('delivery.update', $log->changes['permissions_added'] ?? []);
+    }
+
+    public function test_audit_log_exports_as_csv(): void
+    {
+        Sanctum::actingAs($this->userWith('admin'));
+        $this->postJson('/api/v1/products', ['name' => 'Exported Product', 'base_price' => 1])->assertCreated();
+
+        $res = $this->get('/api/v1/audit-logs/export')->assertOk();
+        $this->assertStringContainsString('text/csv', (string) $res->headers->get('content-type'));
+
+        $body = $res->streamedContent();
+        $this->assertStringContainsString('When,Who,Event,Method,Path,Entity', $body);
+        $this->assertStringContainsString('Product', $body);
     }
 }
