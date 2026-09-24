@@ -28,6 +28,7 @@ class InvitationController extends Controller
     {
         $result = $action->execute(
             $request->string('email'),
+            $request->string('username'),
             $request->string('role'),
             $request->user(),
         );
@@ -58,7 +59,7 @@ class InvitationController extends Controller
         }
 
         return response()->json([
-            'data' => ['valid' => true, 'email' => $invitation->email, 'role' => $invitation->role],
+            'data' => ['valid' => true, 'email' => $invitation->email, 'username' => $invitation->username, 'role' => $invitation->role],
         ]);
     }
 
@@ -71,7 +72,12 @@ class InvitationController extends Controller
             return response()->json(['message' => 'This invitation is no longer valid.'], 422);
         }
 
-        $user = $action->execute($invitation, $request->string('name'), $request->string('password'));
+        $user = $action->execute(
+            $invitation,
+            $request->string('name'),
+            $request->string('username'),
+            $request->string('password'),
+        );
 
         return response()->json([
             'data' => [

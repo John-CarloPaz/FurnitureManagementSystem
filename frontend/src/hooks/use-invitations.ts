@@ -8,7 +8,7 @@ export function useInvitations(enabled = true) {
 export function useCreateInvitation() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (payload: { email: string; role: string }) => createInvitation(payload),
+    mutationFn: (payload: { email: string; username: string; role: string }) => createInvitation(payload),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['invitations'] }),
   })
 }

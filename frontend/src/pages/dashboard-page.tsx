@@ -21,11 +21,11 @@ const ORDERS: { id: string; title: string; customer: string; state: OrderState }
 
 export function DashboardPage() {
   const { user } = useAuth()
-  const firstName = user?.name.split(' ')[0] ?? 'there'
+  const greeting = user?.username || user?.name?.split(' ')[0] || 'there'
   return (
     <div className="mx-auto max-w-6xl space-y-8">
       <div>
-        <h1 className="font-display text-3xl text-fg">Welcome back, {firstName}</h1>
+        <h1 className="font-display text-3xl text-fg">Welcome back, {greeting}</h1>
         <p className="mt-1 text-muted">Here's what's happening on the floor today.</p>
       </div>
 

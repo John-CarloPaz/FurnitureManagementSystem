@@ -17,6 +17,7 @@ class AcceptInvitationRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
+            'username' => ['required', 'string', 'min:3', 'max:50', 'alpha_dash', 'unique:users,username'],
             'password' => ['required', 'confirmed', Password::defaults()],
         ];
     }

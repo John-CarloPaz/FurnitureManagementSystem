@@ -5,6 +5,7 @@ import type { User } from './auth-api'
 export interface Invitation {
   id: number
   email: string
+  username: string | null
   role: string
   status: 'pending' | 'accepted' | 'expired'
   accept_url: string
@@ -24,7 +25,7 @@ export async function fetchInvitations(): Promise<Invitation[]> {
   return data.data
 }
 
-export async function createInvitation(payload: { email: string; role: string }): Promise<CreatedInvitation> {
+export async function createInvitation(payload: { email: string; username: string; role: string }): Promise<CreatedInvitation> {
   const { data } = await api.post('/invitations', payload)
   return { invitation: data.data, email_sent: data.meta?.email_sent ?? false }
 }
@@ -38,6 +39,7 @@ export async function revokeInvitation(id: number): Promise<void> {
 export interface InvitationPreview {
   valid: boolean
   email?: string
+  username?: string | null
   role?: string
   reason?: string
 }
@@ -55,7 +57,7 @@ export async function readInvitation(token: string): Promise<InvitationPreview> 
 
 export async function acceptInvitation(
   token: string,
-  payload: { name: string; password: string; password_confirmation: string },
+  payload: { name: string; username: string; password: string; password_confirmation: string },
 ): Promise<{ token: string; user: User }> {
   const { data } = await api.post(`/invitations/accept/${token}`, payload)
   return data.data

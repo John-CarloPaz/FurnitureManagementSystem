@@ -14,6 +14,7 @@ use Illuminate\Support\Carbon;
  *
  * @property int $id
  * @property string $email
+ * @property string|null $username
  * @property string $role
  * @property string $token
  * @property int|null $invited_by
@@ -23,7 +24,7 @@ use Illuminate\Support\Carbon;
  */
 class Invitation extends Model
 {
-    protected $fillable = ['email', 'role', 'token', 'invited_by', 'expires_at', 'accepted_at'];
+    protected $fillable = ['email', 'username', 'role', 'token', 'invited_by', 'expires_at', 'accepted_at'];
 
     /** @return array<string, string> */
     protected function casts(): array

@@ -51,8 +51,8 @@ function PendingInvitations() {
           {rows.map((inv) => (
             <tr key={inv.id} className="border-b border-border last:border-0">
               <td className="px-6 py-3">
-                <p className="text-fg">{inv.email}</p>
-                <p className="text-xs text-muted">{prettyRole(inv.role)}{inv.invited_by ? ` · invited by ${inv.invited_by}` : ''}</p>
+                <p className="text-fg">{inv.username ? `@${inv.username}` : inv.email}</p>
+                <p className="text-xs text-muted">{inv.username ? `${inv.email} · ` : ''}{prettyRole(inv.role)}{inv.invited_by ? ` · invited by ${inv.invited_by}` : ''}</p>
               </td>
               <td className="px-6 py-3">
                 <span className="text-xs font-medium" style={{ color: INVITE_COLOR[inv.status] }}>
@@ -147,7 +147,7 @@ export function UsersPage() {
                   <tr key={u.id} className="border-t border-border">
                     <td className="px-6 py-3">
                       <p className="text-fg">{u.name}{isSelf && <span className="ml-1 text-xs text-muted">(you)</span>}</p>
-                      <p className="text-xs text-muted">{u.email}</p>
+                      <p className="text-xs text-muted">{u.username ? `@${u.username} · ` : ''}{u.email}</p>
                     </td>
                     <td className="px-6 py-3">
                       {canUpdate && !isSelf ? (

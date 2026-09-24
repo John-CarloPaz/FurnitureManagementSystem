@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type ReactNode } from 'react'
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
@@ -10,6 +10,24 @@ import { prettyRole } from '@/lib/roles-api'
 
 const inputCls =
   'w-full rounded-[var(--radius-sm)] border border-border bg-bg px-3 py-2 text-sm text-fg outline-none focus:ring-2 focus:ring-[var(--amber)]'
+
+// Module scope — defining this inside the page would recreate it on every keystroke,
+// remounting the inputs and stealing focus after each character.
+function Shell({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-bg p-4">
+      <div className="w-full max-w-sm space-y-6">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <span className="flex h-14 w-14 items-center justify-center rounded-[var(--radius-md)] bg-walnut text-walnut-foreground">
+            <Logo className="h-8 w-8" />
+          </span>
+          <h1 className="font-display text-2xl text-fg">Cedarside Holding Corp.</h1>
+        </div>
+        {children}
+      </div>
+    </div>
+  )
+}
 
 export function AcceptInvitationPage() {
   const { token = '' } = useParams()
@@ -23,13 +41,20 @@ export function AcceptInvitationPage() {
   })
 
   const [name, setName] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState<string | null>(null)
 
+  // Prefill the admin-suggested username once the invite loads (still editable).
+  const suggested = preview.data?.username
+  useEffect(() => {
+    if (suggested) setUsername((u) => u || suggested)
+  }, [suggested])
+
   const accept = useMutation({
     mutationFn: () =>
-      acceptInvitation(token, { name, password, password_confirmation: confirm }),
+      acceptInvitation(token, { name, username: username.trim(), password, password_confirmation: confirm }),
     onSuccess: (res) => {
       tokenStore.set(res.token)
       qc.setQueryData(['me'], res.user)
@@ -43,20 +68,6 @@ export function AcceptInvitationPage() {
     setError(null)
     accept.mutate()
   }
-
-  const Shell = ({ children }: { children: ReactNode }) => (
-    <div className="flex min-h-screen items-center justify-center bg-bg p-4">
-      <div className="w-full max-w-sm space-y-6">
-        <div className="flex flex-col items-center gap-3 text-center">
-          <span className="flex h-14 w-14 items-center justify-center rounded-[var(--radius-md)] bg-walnut text-walnut-foreground">
-            <Logo className="h-8 w-8" />
-          </span>
-          <h1 className="font-display text-2xl text-fg">Cedarside Holding Corp.</h1>
-        </div>
-        {children}
-      </div>
-    </div>
-  )
 
   if (preview.isLoading) {
     return <Shell><p className="text-center text-muted">Checking your invitation…</p></Shell>
@@ -95,6 +106,10 @@ export function AcceptInvitationPage() {
         <div className="space-y-1.5">
           <label className="text-sm font-medium text-fg" htmlFor="name">Your name</label>
           <input id="name" value={name} onChange={(e) => setName(e.target.value)} className={inputCls} required />
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium text-fg" htmlFor="username">Username</label>
+          <input id="username" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="username" className={inputCls} required />
         </div>
         <div className="space-y-1.5">
           <label className="text-sm font-medium text-fg" htmlFor="password">Password</label>

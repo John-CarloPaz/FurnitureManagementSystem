@@ -20,12 +20,13 @@ class CreateInvitationAction
 {
     public function __construct(private readonly SendInvitationEmail $email) {}
 
-    public function execute(string $email, string $role, ?User $inviter): InvitationResult
+    public function execute(string $email, string $username, string $role, ?User $inviter): InvitationResult
     {
         // One live invitation per email: reissuing overwrites token + expiry.
         $invitation = Invitation::updateOrCreate(
             ['email' => $email],
             [
+                'username' => $username,
                 'role' => $role,
                 'token' => Str::random(64),
                 'invited_by' => $inviter?->id,

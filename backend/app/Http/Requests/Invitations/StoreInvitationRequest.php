@@ -17,6 +17,7 @@ class StoreInvitationRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'username' => ['required', 'string', 'min:3', 'max:50', 'alpha_dash', 'unique:users,username'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'role' => [
                 'required', 'string', 'exists:roles,name',
@@ -29,6 +30,8 @@ class StoreInvitationRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'username.unique' => 'That username is already taken.',
+            'username.alpha_dash' => 'Username may only contain letters, numbers, dashes and underscores.',
             'email.unique' => 'A user with that email already exists.',
             'role.not_in' => 'You are not allowed to invite someone into that role.',
         ];

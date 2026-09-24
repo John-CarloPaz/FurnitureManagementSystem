@@ -3,6 +3,7 @@ import { api, tokenStore } from './api'
 export interface User {
   id: number
   name: string
+  username: string | null
   email: string
   company: string | null
   is_active: boolean

@@ -29,6 +29,7 @@ function CopyLink({ url }: { url: string }) {
 
 export function InviteUserForm({ roles, onDone }: { roles: Role[]; onDone: () => void }) {
   const create = useCreateInvitation()
+  const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [role, setRole] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -37,9 +38,9 @@ export function InviteUserForm({ roles, onDone }: { roles: Role[]; onDone: () =>
   const submit = () => {
     setError(null)
     create.mutate(
-      { email, role },
+      { username: username.trim(), email, role },
       {
-        onSuccess: (res) => { setResult(res); setEmail('') },
+        onSuccess: (res) => { setResult(res); setUsername(''); setEmail('') },
         onError: (e) => setError(apiError(e)),
       },
     )
@@ -47,7 +48,13 @@ export function InviteUserForm({ roles, onDone }: { roles: Role[]; onDone: () =>
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-[1fr_200px_auto]">
+      <div className="grid gap-3 sm:grid-cols-[200px_1fr_200px_auto]">
+        <input
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder="username"
+          className={inputCls}
+        />
         <input
           type="email"
           value={email}
@@ -61,7 +68,7 @@ export function InviteUserForm({ roles, onDone }: { roles: Role[]; onDone: () =>
             <option key={r.id} value={r.name}>{prettyRole(r.name)}</option>
           ))}
         </select>
-        <Button disabled={create.isPending || !email || !role} onClick={submit}>
+        <Button disabled={create.isPending || !username.trim() || !email || !role} onClick={submit}>
           <Mail size={15} /> {create.isPending ? 'Sending…' : 'Send invite'}
         </Button>
       </div>

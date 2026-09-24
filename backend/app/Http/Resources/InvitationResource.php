@@ -15,6 +15,7 @@ class InvitationResource extends JsonResource
         return [
             'id' => $this->id,
             'email' => $this->email,
+            'username' => $this->username,
             'role' => $this->role,
             'status' => $this->status(),
             'accept_url' => $this->acceptUrl(), // copyable fallback for the inviter

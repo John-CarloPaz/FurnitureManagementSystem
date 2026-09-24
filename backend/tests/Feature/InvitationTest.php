@@ -33,6 +33,7 @@ class InvitationTest extends TestCase
     {
         return Invitation::create([
             'email' => $email,
+            'username' => 'user_'.Str::random(6),
             'role' => $role,
             'token' => Str::random(64),
             'expires_at' => now()->addDays(7),
@@ -46,7 +47,7 @@ class InvitationTest extends TestCase
 
         Sanctum::actingAs($this->userWith('admin'));
 
-        $this->postJson('/api/v1/invitations', ['email' => 'newrider@example.com', 'role' => 'delivery_personnel'])
+        $this->postJson('/api/v1/invitations', ['email' => 'newrider@example.com', 'username' => 'newrider', 'role' => 'delivery_personnel'])
             ->assertCreated()
             ->assertJsonPath('data.email', 'newrider@example.com')
             ->assertJsonPath('data.status', 'pending')
@@ -62,7 +63,7 @@ class InvitationTest extends TestCase
         config(['services.brevo.key' => null]);
         Sanctum::actingAs($this->userWith('super_admin'));
 
-        $this->postJson('/api/v1/invitations', ['email' => 'nokey@example.com', 'role' => 'qa_tester'])
+        $this->postJson('/api/v1/invitations', ['email' => 'nokey@example.com', 'username' => 'nokeyuser', 'role' => 'qa_tester'])
             ->assertCreated()
             ->assertJsonPath('meta.email_sent', false)
             ->assertJsonPath('data.status', 'pending')
@@ -74,7 +75,7 @@ class InvitationTest extends TestCase
     {
         Sanctum::actingAs($this->userWith('admin'));
 
-        $this->postJson('/api/v1/invitations', ['email' => 'sneaky@example.com', 'role' => 'super_admin'])
+        $this->postJson('/api/v1/invitations', ['email' => 'sneaky@example.com', 'username' => 'sneaky', 'role' => 'super_admin'])
             ->assertStatus(422)
             ->assertJsonValidationErrorFor('role');
     }
@@ -85,7 +86,7 @@ class InvitationTest extends TestCase
         $existing->assignRole('customer');
         Sanctum::actingAs($this->userWith('admin'));
 
-        $this->postJson('/api/v1/invitations', ['email' => 'taken@example.com', 'role' => 'customer'])
+        $this->postJson('/api/v1/invitations', ['email' => 'taken@example.com', 'username' => 'takenuser', 'role' => 'customer'])
             ->assertStatus(422)
             ->assertJsonValidationErrorFor('email');
     }
@@ -107,11 +108,13 @@ class InvitationTest extends TestCase
 
         $this->postJson("/api/v1/invitations/accept/{$invite->token}", [
             'name' => 'Pedro Driver',
+            'username' => 'pedro',
             'password' => 'Secret@2026',
             'password_confirmation' => 'Secret@2026',
         ])
             ->assertCreated()
             ->assertJsonPath('data.user.email', 'driver@example.com')
+            ->assertJsonPath('data.user.username', 'pedro')
             ->assertJsonPath('data.user.roles.0', 'delivery_personnel')
             ->assertJsonStructure(['data' => ['token', 'user']]);
 
@@ -133,6 +136,7 @@ class InvitationTest extends TestCase
 
         $this->postJson("/api/v1/invitations/accept/{$invite->token}", [
             'name' => 'Too Late',
+            'username' => 'toolate',
             'password' => 'Secret@2026',
             'password_confirmation' => 'Secret@2026',
         ])->assertStatus(422);
@@ -145,6 +149,7 @@ class InvitationTest extends TestCase
 
         $this->postJson("/api/v1/invitations/accept/{$invite->token}", [
             'name' => 'Again',
+            'username' => 'againuser',
             'password' => 'Secret@2026',
             'password_confirmation' => 'Secret@2026',
         ])->assertStatus(422);
