@@ -10,6 +10,7 @@ import { OrderDetailPage } from '@/pages/order-detail-page'
 import { ShopFloorPage } from '@/pages/shop-floor-page'
 import { DeliveriesPage } from '@/pages/deliveries-page'
 import { AnalyticsPage } from '@/pages/analytics-page'
+import { ReportsPage } from '@/pages/reports-page'
 import { UsersPage } from '@/pages/users-page'
 import { RolesPage } from '@/pages/roles-page'
 import { AuditPage } from '@/pages/audit-page'
@@ -43,6 +44,7 @@ export default function App() {
             <Route path="shop-floor" element={<ShopFloorPage />} />
             <Route path="deliveries" element={<DeliveriesPage />} />
             <Route path="kpi" element={<AnalyticsPage />} />
+            <Route path="reports" element={<ReportsPage />} />
             <Route path="users" element={<UsersPage />} />
             <Route path="roles" element={<RolesPage />} />
             <Route path="audit" element={<AuditPage />} />

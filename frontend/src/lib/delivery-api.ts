@@ -61,6 +61,11 @@ export async function assignDelivery(orderId: number, payload: { driver_id?: num
   return data.data
 }
 
+export async function reassignDriver(id: number, driverId: number): Promise<DeliveryAssignment> {
+  const { data } = await api.patch(`/deliveries/${id}`, { driver_id: driverId })
+  return data.data
+}
+
 export async function dispatchDelivery(id: number, payload: { manual_location?: string }): Promise<DeliveryAssignment> {
   const { data } = await api.post(`/deliveries/${id}/dispatch`, payload)
   return data.data

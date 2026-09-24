@@ -30,6 +30,15 @@ export interface OrderTransition {
   created_at: string
 }
 
+export interface OrderDelivery {
+  id: number
+  driver: string | null
+  driver_id: number | null
+  status: string
+  status_label: string
+  batch_label: string | null
+}
+
 export interface Order {
   id: number
   order_number: string
@@ -49,6 +58,7 @@ export interface Order {
   items?: OrderItem[]
   payments?: OrderPayment[]
   transitions?: OrderTransition[]
+  delivery?: OrderDelivery | null
   placed_at: string | null
   confirmed_at: string | null
   delivered_at: string | null

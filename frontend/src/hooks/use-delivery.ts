@@ -6,6 +6,7 @@ import {
   fetchDrivers,
   fetchUnassignedOrders,
   logLocation,
+  reassignDriver,
   recordProof,
 } from '@/lib/delivery-api'
 
@@ -27,6 +28,18 @@ function useInvalidate() {
     qc.invalidateQueries({ queryKey: ['deliveries'] })
     qc.invalidateQueries({ queryKey: ['orders'] })
   }
+}
+
+export function useReassignDriver(orderId?: number) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (vars: { id: number; driverId: number }) => reassignDriver(vars.id, vars.driverId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['deliveries'] })
+      qc.invalidateQueries({ queryKey: ['orders'] })
+      if (orderId) qc.invalidateQueries({ queryKey: ['orders', orderId] })
+    },
+  })
 }
 
 export function useAssignDelivery() {

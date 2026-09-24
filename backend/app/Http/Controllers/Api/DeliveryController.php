@@ -6,6 +6,7 @@ use App\Domain\Delivery\Actions\AssignDeliveryAction;
 use App\Domain\Delivery\Actions\DispatchDeliveryAction;
 use App\Domain\Delivery\Actions\LogLocationAction;
 use App\Domain\Delivery\Actions\RecordProofOfDeliveryAction;
+use App\Domain\Delivery\Enums\DeliveryStatus;
 use App\Domain\Delivery\Models\DeliveryAssignment;
 use App\Domain\Delivery\Models\ProofOfDelivery;
 use App\Domain\Orders\Enums\OrderState;
@@ -21,6 +22,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DeliveryController extends Controller
@@ -85,6 +87,31 @@ class DeliveryController extends Controller
     public function show(DeliveryAssignment $assignment): DeliveryAssignmentResource
     {
         $this->authorize('view', $assignment);
+
+        return new DeliveryAssignmentResource($this->full($assignment));
+    }
+
+    /** Reassign the driver (or batch) on a delivery that hasn't been completed yet. */
+    public function reassign(Request $request, DeliveryAssignment $assignment): DeliveryAssignmentResource
+    {
+        $this->authorize('assign', DeliveryAssignment::class);
+
+        $validated = $request->validate([
+            'driver_id' => ['required', 'integer'],
+            'batch_label' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        if ($assignment->status === DeliveryStatus::DELIVERED) {
+            throw ValidationException::withMessages(['driver_id' => ['This delivery is already completed.']]);
+        }
+        if (! User::role('delivery_personnel')->whereKey($validated['driver_id'])->exists()) {
+            throw ValidationException::withMessages(['driver_id' => ['Choose an active delivery driver.']]);
+        }
+
+        $assignment->update([
+            'driver_id' => (int) $validated['driver_id'],
+            'batch_label' => $validated['batch_label'] ?? $assignment->batch_label,
+        ]);
 
         return new DeliveryAssignmentResource($this->full($assignment));
     }

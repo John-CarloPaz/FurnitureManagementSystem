@@ -118,6 +118,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/deliveries/unassigned', [DeliveryController::class, 'unassigned']); // before {assignment}
         Route::get('/deliveries/drivers', [DeliveryController::class, 'drivers']);
         Route::get('/deliveries/{assignment}', [DeliveryController::class, 'show']);
+        Route::patch('/deliveries/{assignment}', [DeliveryController::class, 'reassign']); // change driver
         Route::post('/orders/{order}/delivery', [DeliveryController::class, 'store']);
         Route::post('/deliveries/{assignment}/dispatch', [DeliveryController::class, 'dispatchDelivery']);
         Route::post('/deliveries/{assignment}/location', [DeliveryController::class, 'location']);

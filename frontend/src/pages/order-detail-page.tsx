@@ -7,10 +7,19 @@ import { StatusPill } from '@/components/ui/status-pill'
 import { FsmStepper } from '@/components/orders/fsm-stepper'
 import { useOrder, useRecordPayment, useTransition } from '@/hooks/use-orders'
 import { useProduction } from '@/hooks/use-manufacturing'
+import { useDrivers, useReassignDriver } from '@/hooks/use-delivery'
 import { ProductionItem } from '@/components/manufacturing/production-item'
 import { useAuth } from '@/hooks/use-auth'
+import { apiError } from '@/lib/api-error'
 import { STATUS_META, peso, type OrderState } from '@/lib/status'
+import type { Order } from '@/lib/orders-api'
 import { AxiosError } from 'axios'
+
+const DELIVERY_STATUS_COLOR: Record<string, string> = {
+  assigned: 'var(--status-neutral)',
+  out_for_delivery: 'var(--status-progress)',
+  delivered: 'var(--status-success)',
+}
 
 const PRODUCTION_STATES: OrderState[] = ['IN_PRODUCTION', 'QUALITY_CHECK', 'REWORK']
 // Delivery-stage moves are driven by the Deliveries workflow (assign a driver → mark
@@ -72,21 +81,60 @@ function TransitionActions({ orderId, allowed }: { orderId: number; allowed: Ord
 }
 
 /** Delivery-stage orders are advanced from the Deliveries page (driver assignment + proof). */
-function DeliveryHandoff({ status }: { status: OrderState }) {
+function DeliverySection({ order }: { order: Order }) {
   const { has } = useAuth()
-  if (!has('delivery.view') || !DELIVERY_HANDOFF_STATES.includes(status)) return null
+  const canAssign = has('delivery.assign')
+  const delivery = order.delivery
+  const editable = canAssign && !!delivery && delivery.status !== 'delivered'
+  const drivers = useDrivers(editable)
+  const reassign = useReassignDriver(order.id)
+
+  if (!has('delivery.view')) return null
+
+  // No assignment yet → point to the Deliveries page for the handoff states.
+  if (!delivery) {
+    if (!DELIVERY_HANDOFF_STATES.includes(order.status)) return null
+    return (
+      <Card className="space-y-2">
+        <p className="text-xs font-medium uppercase tracking-wide text-muted">Delivery</p>
+        <p className="text-sm text-muted">Assign a driver and dispatch this order from the Deliveries page.</p>
+        <Link to="/deliveries" className="inline-flex w-fit items-center gap-1.5 text-sm text-walnut hover:underline">Go to Deliveries →</Link>
+      </Card>
+    )
+  }
+
+  const color = DELIVERY_STATUS_COLOR[delivery.status] ?? 'var(--status-neutral)'
 
   return (
-    <Card className="space-y-2">
-      <p className="text-xs font-medium uppercase tracking-wide text-muted">Delivery</p>
-      <p className="text-sm text-muted">
-        {status === 'READY_FOR_DELIVERY'
-          ? 'Assign a driver and mark this order picked up from the Deliveries page.'
-          : 'Log location and capture proof of delivery from the Deliveries page.'}
-      </p>
-      <Link to="/deliveries" className="inline-flex w-fit items-center gap-1.5 text-sm text-walnut hover:underline">
-        Go to Deliveries →
-      </Link>
+    <Card className="space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-medium uppercase tracking-wide text-muted">Delivery</p>
+        <span className="rounded-full px-2.5 py-1 text-xs font-medium" style={{ backgroundColor: `color-mix(in srgb, ${color} 14%, transparent)`, color }}>
+          {delivery.status_label}
+        </span>
+      </div>
+      <div className="flex justify-between text-sm"><span className="text-muted">Driver</span><span className="text-fg">{delivery.driver ?? 'Unassigned'}</span></div>
+      {delivery.batch_label && (
+        <div className="flex justify-between text-sm"><span className="text-muted">Batch</span><span className="text-fg">{delivery.batch_label}</span></div>
+      )}
+
+      {editable && (
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-muted">Reassign driver</label>
+          <select
+            value={delivery.driver_id ?? ''}
+            disabled={reassign.isPending}
+            onChange={(e) => e.target.value && reassign.mutate({ id: delivery.id, driverId: Number(e.target.value) })}
+            className="w-full rounded-[var(--radius-sm)] border border-border bg-bg px-3 py-2 text-sm text-fg outline-none focus:ring-2 focus:ring-[var(--amber)]"
+          >
+            <option value="">Select driver…</option>
+            {(drivers.data ?? []).map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+          </select>
+          {reassign.isError && <p className="text-sm text-[var(--status-danger)]">{apiError(reassign.error)}</p>}
+        </div>
+      )}
+
+      <Link to="/deliveries" className="inline-flex w-fit items-center gap-1.5 text-sm text-walnut hover:underline">Manage in Deliveries →</Link>
     </Card>
   )
 }
@@ -196,7 +244,7 @@ export function OrderDetailPage() {
 
         <div className="space-y-6 lg:col-span-2">
           <TransitionActions orderId={order.id} allowed={order.allowed_transitions} />
-          <DeliveryHandoff status={order.status} />
+          <DeliverySection order={order} />
 
           <Card className="space-y-2 text-sm">
             <p className="text-xs font-medium uppercase tracking-wide text-muted">Payment</p>

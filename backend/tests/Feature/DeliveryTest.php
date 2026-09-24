@@ -116,6 +116,18 @@ class DeliveryTest extends TestCase
         $this->assertDatabaseHas('proof_of_deliveries', ['delivery_assignment_id' => $assignment->id]);
     }
 
+    public function test_coordinator_reassigns_the_driver(): void
+    {
+        $order = $this->order(OrderState::READY_FOR_DELIVERY);
+        $assignment = $this->assignmentFor($order, $this->userWith('delivery_personnel'));
+        $newDriver = $this->userWith('delivery_personnel');
+        Sanctum::actingAs($this->userWith('logistics_coordinator'));
+
+        $this->patchJson("/api/v1/deliveries/{$assignment->id}", ['driver_id' => $newDriver->id])
+            ->assertOk()
+            ->assertJsonPath('data.driver_id', $newDriver->id);
+    }
+
     public function test_cannot_mark_delivered_without_proof(): void
     {
         $order = $this->order(OrderState::OUT_FOR_DELIVERY);
