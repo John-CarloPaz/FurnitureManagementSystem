@@ -17,13 +17,12 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 /** Public marketplace — browse published products (no auth). Ordering still needs a login. */
 class StorefrontController extends Controller
 {
-    /** Published catalogue, newest first, optional ?category & ?q search. */
+    /** Published catalogue with optional ?category, ?q search and ?sort ordering. */
     public function products(Request $request): AnonymousResourceCollection
     {
         $query = Product::query()
             ->where('status', ProductStatus::PUBLISHED->value)
-            ->with(['images', 'model'])
-            ->latest('published_at');
+            ->with(['images', 'model']);
 
         if ($category = $request->query('category')) {
             $query->where('category', $category);
@@ -32,7 +31,30 @@ class StorefrontController extends Controller
             $query->where('name', 'like', '%'.$q.'%');
         }
 
-        return StorefrontProductResource::collection($query->paginate(12));
+        match ($request->query('sort')) {
+            'price_asc' => $query->orderBy('base_price'),
+            'price_desc' => $query->orderByDesc('base_price'),
+            'name' => $query->orderBy('name'),
+            default => $query->latest('published_at'),
+        };
+
+        return StorefrontProductResource::collection(
+            $query->paginate(12)->withQueryString()
+        );
+    }
+
+    /** Distinct categories among published products, for the storefront filter tabs. */
+    public function categories(): JsonResponse
+    {
+        $categories = Product::query()
+            ->where('status', ProductStatus::PUBLISHED->value)
+            ->whereNotNull('category')
+            ->distinct()
+            ->orderBy('category')
+            ->pluck('category')
+            ->values();
+
+        return response()->json(['data' => $categories]);
     }
 
     /** A single published product with a temporary signed URL to its 3D model. */

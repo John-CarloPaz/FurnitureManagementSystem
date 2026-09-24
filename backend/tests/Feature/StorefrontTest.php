@@ -53,6 +53,32 @@ class StorefrontTest extends TestCase
         $this->getJson("/api/v1/shop/products/{$draft->id}")->assertNotFound();
     }
 
+    public function test_storefront_filters_by_category_and_lists_categories(): void
+    {
+        Product::create(['name' => 'Oak Chair', 'slug' => 'oak-chair', 'base_price' => 1000, 'category' => 'Chairs', 'status' => ProductStatus::PUBLISHED]);
+        Product::create(['name' => 'Pine Table', 'slug' => 'pine-table', 'base_price' => 2000, 'category' => 'Tables', 'status' => ProductStatus::PUBLISHED]);
+        Product::create(['name' => 'Draft Sofa', 'slug' => 'draft-sofa', 'base_price' => 5000, 'category' => 'Sofas', 'status' => ProductStatus::DRAFT]);
+
+        $categories = $this->getJson('/api/v1/shop/categories')->assertOk()->json('data');
+        $this->assertSame(['Chairs', 'Tables'], $categories);
+
+        $filtered = $this->getJson('/api/v1/shop/products?category=Chairs')->assertOk()->json('data');
+        $this->assertCount(1, $filtered);
+        $this->assertSame('Oak Chair', $filtered[0]['name']);
+    }
+
+    public function test_storefront_sorts_by_price(): void
+    {
+        Product::create(['name' => 'Cheap', 'slug' => 'cheap', 'base_price' => 500, 'status' => ProductStatus::PUBLISHED]);
+        Product::create(['name' => 'Pricey', 'slug' => 'pricey', 'base_price' => 9000, 'status' => ProductStatus::PUBLISHED]);
+
+        $asc = $this->getJson('/api/v1/shop/products?sort=price_asc')->assertOk()->json('data');
+        $this->assertSame('Cheap', $asc[0]['name']);
+
+        $desc = $this->getJson('/api/v1/shop/products?sort=price_desc')->assertOk()->json('data');
+        $this->assertSame('Pricey', $desc[0]['name']);
+    }
+
     public function test_customer_can_register_and_is_logged_in(): void
     {
         $this->postJson('/api/v1/auth/register', [

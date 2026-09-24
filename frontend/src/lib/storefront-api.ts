@@ -19,12 +19,26 @@ export interface ShopProduct {
   model_format?: string | null
 }
 
-export async function fetchShopProducts(params?: { category?: string; q?: string; page?: number }): Promise<Paginated<ShopProduct>> {
+export type ShopSort = 'newest' | 'price_asc' | 'price_desc' | 'name'
+
+export interface ShopProductsParams {
+  category?: string
+  q?: string
+  sort?: ShopSort
+  page?: number
+}
+
+export async function fetchShopProducts(params?: ShopProductsParams): Promise<Paginated<ShopProduct>> {
   const { data } = await api.get('/shop/products', { params })
   return data
 }
 
 export async function fetchShopProduct(id: number): Promise<ShopProduct> {
   const { data } = await api.get(`/shop/products/${id}`)
+  return data.data
+}
+
+export async function fetchShopCategories(): Promise<string[]> {
+  const { data } = await api.get('/shop/categories')
   return data.data
 }
