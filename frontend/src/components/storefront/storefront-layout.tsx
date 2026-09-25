@@ -30,6 +30,7 @@ export function StorefrontLayout() {
           <nav className="hidden items-center gap-6 sm:flex">
             <NavLink to="/shop" end className={navLink}>Shop</NavLink>
             {isAuthenticated && <NavLink to="/shop/orders" className={navLink}>My Orders</NavLink>}
+            {isAuthenticated && <NavLink to="/shop/addresses" className={navLink}>Addresses</NavLink>}
           </nav>
 
           <div className="flex items-center gap-2">

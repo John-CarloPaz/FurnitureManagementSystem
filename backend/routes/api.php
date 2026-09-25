@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\DeliveryAddressController;
 use App\Http\Controllers\Api\DeliveryController;
 use App\Http\Controllers\Api\DssController;
 use App\Http\Controllers\Api\InvitationController;
@@ -10,6 +11,7 @@ use App\Http\Controllers\Api\ManufacturingController;
 use App\Http\Controllers\Api\ModelVersionController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\PhAddressController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\RegisterController;
@@ -48,6 +50,11 @@ Route::prefix('v1')->group(function () {
     Route::get('/shop/products/{product}', [StorefrontController::class, 'product']);
     Route::get('/shop/product-images/{image}/file', [StorefrontController::class, 'image']);
 
+    // Philippine address reference data (PSGC) — cascading Province → City → Barangay.
+    Route::get('/ph/provinces', [PhAddressController::class, 'provinces']);
+    Route::get('/ph/provinces/{province}/cities', [PhAddressController::class, 'cities']);
+    Route::get('/ph/cities/{city}/barangays', [PhAddressController::class, 'barangays']);
+
     // Public invitation accept flow — the token in the URL is the credential.
     Route::get('/invitations/accept/{token}', [InvitationController::class, 'showByToken']);
     Route::post('/invitations/accept/{token}', [InvitationController::class, 'accept']);
@@ -56,6 +63,12 @@ Route::prefix('v1')->group(function () {
         Route::post('/auth/logout', [AuthController::class, 'logout']);
         Route::get('/auth/me', [AuthController::class, 'me']);
         Route::patch('/auth/profile', [ProfileController::class, 'update']); // self-service profile
+
+        // ---- Saved delivery addresses (customer address book) ----
+        Route::get('/addresses', [DeliveryAddressController::class, 'index']);
+        Route::post('/addresses', [DeliveryAddressController::class, 'store']);
+        Route::patch('/addresses/{address}', [DeliveryAddressController::class, 'update']);
+        Route::delete('/addresses/{address}', [DeliveryAddressController::class, 'destroy']);
 
         // ---- Notifications (own, in-app) ----
         Route::get('/notifications', [NotificationController::class, 'index']);

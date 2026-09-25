@@ -8,6 +8,7 @@ use App\Domain\Products\Models\Product;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class StorefrontTest extends TestCase
@@ -94,5 +95,23 @@ class StorefrontTest extends TestCase
             ->assertJsonStructure(['data' => ['token', 'user']]);
 
         $this->assertTrue(User::where('email', 'jane@example.com')->first()->hasRole('customer'));
+    }
+
+    public function test_a_welcome_email_is_sent_on_registration(): void
+    {
+        config(['services.brevo.key' => 'test-key']);
+        Http::fake(['api.brevo.com/*' => Http::response(['messageId' => 'x'], 201)]);
+
+        $this->postJson('/api/v1/auth/register', [
+            'name' => 'Wel Come',
+            'username' => 'welcome1',
+            'email' => 'wel@example.com',
+            'password' => 'Secret@2026',
+            'password_confirmation' => 'Secret@2026',
+        ])->assertCreated();
+
+        Http::assertSent(fn ($request) => str_contains($request->url(), 'api.brevo.com')
+            && $request['to'][0]['email'] === 'wel@example.com'
+            && str_contains((string) $request['subject'], 'Welcome'));
     }
 }

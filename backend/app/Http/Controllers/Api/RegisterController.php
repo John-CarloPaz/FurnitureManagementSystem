@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Domain\Access\Actions\SendWelcomeEmail;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Resources\UserResource;
@@ -11,7 +12,7 @@ use Illuminate\Http\JsonResponse;
 class RegisterController extends Controller
 {
     /** Public customer sign-up → creates a customer account and logs them straight in. */
-    public function register(RegisterRequest $request): JsonResponse
+    public function register(RegisterRequest $request, SendWelcomeEmail $welcome): JsonResponse
     {
         $user = User::create([
             'name' => $request->string('name'),
@@ -22,6 +23,8 @@ class RegisterController extends Controller
         ]);
 
         $user->assignRole('customer');
+
+        $welcome->execute($user);
 
         return response()->json([
             'data' => [

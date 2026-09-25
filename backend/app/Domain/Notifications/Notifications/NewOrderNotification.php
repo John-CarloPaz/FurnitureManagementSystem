@@ -14,10 +14,14 @@ class NewOrderNotification extends Notification
         public string $customerName,
     ) {}
 
-    /** @return array<int, string> */
+    /**
+     * In-app only — the staff bell; customer emails are handled separately via Brevo.
+     *
+     * @return array<int, string>
+     */
     public function via(object $notifiable): array
     {
-        return ['database', 'mail'];
+        return ['database'];
     }
 
     /** @return array<string, mixed> */

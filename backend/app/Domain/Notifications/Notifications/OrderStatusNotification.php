@@ -14,10 +14,14 @@ class OrderStatusNotification extends Notification
         public string $status,
     ) {}
 
-    /** @return array<int, string> */
+    /**
+     * In-app only; the customer's milestone emails are sent through Brevo by SendOrderEmail.
+     *
+     * @return array<int, string>
+     */
     public function via(object $notifiable): array
     {
-        return ['database', 'mail'];
+        return ['database'];
     }
 
     /** @return array<string, mixed> */
