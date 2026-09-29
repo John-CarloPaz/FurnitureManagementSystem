@@ -15,6 +15,8 @@ export interface ShopProduct {
   lead_time_days: number | null
   image_url: string | null
   has_model: boolean
+  rating_avg: number | null
+  rating_count: number
   model_url?: string | null
   model_format?: string | null
 }

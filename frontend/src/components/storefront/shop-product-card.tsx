@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { Box, Boxes } from 'lucide-react'
+import { Box, Boxes, Star } from 'lucide-react'
 import { peso } from '@/lib/status'
 import type { ShopProduct } from '@/lib/storefront-api'
 
@@ -26,6 +26,12 @@ export function ShopProductCard({ product }: { product: ShopProduct }) {
         {product.category && <p className="text-[11px] uppercase tracking-wide text-muted">{product.category}</p>}
         <p className="font-medium text-fg">{product.name}</p>
         <p className="font-display text-lg text-walnut">{peso(product.base_price)}</p>
+        {product.rating_count > 0 && (
+          <p className="flex items-center gap-1 text-xs text-muted">
+            <Star size={12} className="text-[var(--amber)]" fill="currentColor" />
+            {product.rating_avg?.toFixed(1)} ({product.rating_count})
+          </p>
+        )}
       </div>
     </button>
   )

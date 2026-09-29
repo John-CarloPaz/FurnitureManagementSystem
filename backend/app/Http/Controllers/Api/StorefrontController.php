@@ -22,7 +22,9 @@ class StorefrontController extends Controller
     {
         $query = Product::query()
             ->where('status', ProductStatus::PUBLISHED->value)
-            ->with(['images', 'model']);
+            ->with(['images', 'model'])
+            ->withCount('reviews')
+            ->withAvg('reviews', 'rating');
 
         if ($category = $request->query('category')) {
             $query->where('category', $category);
@@ -71,7 +73,7 @@ class StorefrontController extends Controller
     {
         abort_unless($product->status === ProductStatus::PUBLISHED, 404);
 
-        $product->load(['images', 'model.currentVersion']);
+        $product->load(['images', 'model.currentVersion'])->loadCount('reviews')->loadAvg('reviews', 'rating');
         $version = $product->model?->currentVersion;
 
         $data = (new StorefrontProductResource($product))->resolve();

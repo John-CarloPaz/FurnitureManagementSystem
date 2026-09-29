@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\PhAddressController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\RegisterController;
+use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\StorefrontController;
 use App\Http\Controllers\Api\UserController;
@@ -50,6 +51,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/shop/settings', [StorefrontController::class, 'settings']);
     Route::get('/shop/categories', [StorefrontController::class, 'categories']);
     Route::get('/shop/products/{product}', [StorefrontController::class, 'product']);
+    Route::get('/shop/products/{product}/reviews', [ReviewController::class, 'index']);
     Route::get('/shop/product-images/{image}/file', [StorefrontController::class, 'image']);
 
     // Philippine address reference data (PSGC) — cascading Province → City → Barangay.
@@ -111,6 +113,10 @@ Route::prefix('v1')->group(function () {
         Route::get('/products/{product}/model-versions', [ModelVersionController::class, 'index']);
         Route::post('/products/{product}/model-versions', [ModelVersionController::class, 'store']);
         Route::get('/model-versions/{version}/download', [ModelVersionController::class, 'download']);
+
+        // ---- Product reviews (customer, post-delivery) ----
+        Route::post('/shop/products/{product}/reviews', [ReviewController::class, 'store']);
+        Route::delete('/reviews/{review}', [ReviewController::class, 'destroy']);
 
         // ---- Vouchers ----
         Route::post('/vouchers/preview', [VoucherController::class, 'preview']); // any customer, before {voucher}

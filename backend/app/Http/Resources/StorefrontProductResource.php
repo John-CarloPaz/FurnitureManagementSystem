@@ -33,6 +33,10 @@ class StorefrontProductResource extends JsonResource
             'lead_time_days' => $this->lead_time_days,
             'image_url' => $primary ? URL::to("/api/v1/shop/product-images/{$primary->id}/file") : null,
             'has_model' => (bool) ($this->model && $this->model->current_version_id),
+            'rating_avg' => $this->getAttribute('reviews_avg_rating') !== null
+                ? round((float) $this->getAttribute('reviews_avg_rating'), 1)
+                : null,
+            'rating_count' => (int) $this->getAttribute('reviews_count'),
         ];
     }
 }
