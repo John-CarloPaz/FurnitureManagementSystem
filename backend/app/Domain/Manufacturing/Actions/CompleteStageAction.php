@@ -5,6 +5,7 @@ namespace App\Domain\Manufacturing\Actions;
 use App\Domain\Manufacturing\Enums\StageStatus;
 use App\Domain\Manufacturing\Events\ManufacturingStageUpdated;
 use App\Domain\Manufacturing\Models\ManufacturingStage;
+use App\Domain\Manufacturing\Support\StageSequence;
 use App\Models\User;
 
 class CompleteStageAction
@@ -12,6 +13,8 @@ class CompleteStageAction
     /** Marks a stage done, computing delay against expected_minutes; records QC result for the QC stage. */
     public function execute(ManufacturingStage $stage, User $operator, ?bool $qcPassed = null, ?string $notes = null): ManufacturingStage
     {
+        StageSequence::assertPreviousDone($stage);
+
         $ended = now();
         $delayed = $stage->started_at && $stage->expected_minutes
             ? $stage->started_at->diffInMinutes($ended) > $stage->expected_minutes

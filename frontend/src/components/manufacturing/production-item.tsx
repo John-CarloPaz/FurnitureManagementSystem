@@ -1,9 +1,12 @@
 import { useState } from 'react'
-import { Check, AlertTriangle, Camera, X } from 'lucide-react'
+import { Check, AlertTriangle, Camera, X, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
 import { useStageActions } from '@/hooks/use-manufacturing'
 import { qcPhotoUrl, type ProductionItem as Item, type Stage, type StageStatus } from '@/lib/manufacturing-api'
+
+// Stages run in this fixed order; a stage stays locked until the one before it is done.
+const STAGE_ORDER = ['cutting', 'assembly', 'sanding', 'finishing', 'qc']
 
 const STAGE_COLOR: Record<StageStatus, string> = {
   pending: 'var(--status-neutral)',
@@ -19,11 +22,15 @@ function StageBlock({
   stage,
   itemId,
   orderId,
+  locked,
+  lockedAfter,
   onQcFail,
 }: {
   stage: Stage
   itemId: number
   orderId?: number
+  locked?: boolean
+  lockedAfter?: string
   onQcFail: () => void
 }) {
   const { has } = useAuth()
@@ -44,6 +51,10 @@ function StageBlock({
       {stage.status === 'done' ? (
         <span className="flex items-center gap-1 text-xs" style={{ color: isQc && stage.qc_passed === false ? 'var(--status-danger)' : 'var(--status-success)' }}>
           <Check size={12} /> {isQc ? (stage.qc_passed === false ? 'Failed' : 'Passed') : 'Done'}
+        </span>
+      ) : locked ? (
+        <span className="flex items-center gap-1 text-xs text-muted" title={`Finish ${lockedAfter} first`}>
+          <Lock size={12} /> Locked
         </span>
       ) : canAct ? (
         <div className="flex flex-wrap gap-1">
@@ -140,9 +151,16 @@ export function ProductionItem({ item, orderId }: { item: Item; orderId?: number
       )}
 
       <div className="flex flex-wrap gap-2">
-        {item.stages.map((s) => (
-          <StageBlock key={s.id} stage={s} itemId={item.id} orderId={orderId} onQcFail={() => setFailing(true)} />
-        ))}
+        {item.stages.map((s) => {
+          const statusOf = (type: string) => item.stages.find((x) => x.stage === type)?.status
+          const idx = STAGE_ORDER.indexOf(s.stage)
+          const prev = idx > 0 ? STAGE_ORDER[idx - 1] : undefined
+          const locked = !!prev && statusOf(prev) !== 'done'
+          const prevLabel = item.stages.find((x) => x.stage === prev)?.stage_label ?? prev
+          return (
+            <StageBlock key={s.id} stage={s} itemId={item.id} orderId={orderId} locked={locked} lockedAfter={prevLabel} onQcFail={() => setFailing(true)} />
+          )
+        })}
       </div>
 
       {failing && <QcFailForm itemId={item.id} orderId={orderId} onClose={() => setFailing(false)} />}
