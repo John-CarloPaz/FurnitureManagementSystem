@@ -11,6 +11,7 @@ import { useCreateReturn } from '@/hooks/use-returns'
 import { useCreateIssue } from '@/hooks/use-issues'
 import { RETURN_REASONS, labelize } from '@/lib/returns-api'
 import { ISSUE_CATEGORIES } from '@/lib/issues-api'
+import { PAYMENTS_ENABLED } from '@/lib/features'
 import { peso } from '@/lib/status'
 
 export function StorefrontOrderDetail() {
@@ -45,7 +46,7 @@ export function StorefrontOrderDetail() {
 
       <Card><FsmStepper state={order.status} /></Card>
 
-      {order.payment_status !== 'PAID' && (order.payment_method === 'GCASH' || order.payment_method === 'BANK') && (
+      {PAYMENTS_ENABLED && order.payment_status !== 'PAID' && (order.payment_method === 'GCASH' || order.payment_method === 'BANK') && (
         <Card className="space-y-3 border-walnut" >
           <h2 className="flex items-center gap-2 font-display text-lg text-fg"><Wallet size={18} /> Complete your payment</h2>
           <p className="text-sm text-muted">
@@ -87,7 +88,7 @@ export function StorefrontOrderDetail() {
             <span className="font-medium text-fg">Total</span>
             <span className="font-display text-xl text-fg">{peso(order.total)}</span>
           </div>
-          {order.payment_method && (
+          {PAYMENTS_ENABLED && order.payment_method && (
             <p className="pt-1 text-xs text-muted">Payment: {order.payment_method} · {order.payment_status}</p>
           )}
         </div>

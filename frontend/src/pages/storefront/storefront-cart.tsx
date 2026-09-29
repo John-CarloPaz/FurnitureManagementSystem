@@ -11,6 +11,7 @@ import { useShopSettings } from '@/hooks/use-storefront'
 import { useAuth } from '@/hooks/use-auth'
 import { peso } from '@/lib/status'
 import { previewVoucher } from '@/lib/vouchers-api'
+import { PAYMENTS_ENABLED } from '@/lib/features'
 import type { DeliveryAddress } from '@/lib/addresses-api'
 
 const PAYMENTS = [
@@ -177,21 +178,23 @@ export function StorefrontCart() {
             )}
           </Card>
 
-          {/* Payment method */}
-          <Card className="space-y-3">
-            <h2 className="font-display text-lg text-fg">Payment method</h2>
-            <div className="grid gap-2 sm:grid-cols-3">
-              {PAYMENTS.map((p) => (
-                <label key={p.value} className={`cursor-pointer rounded-[var(--radius-sm)] border p-3 transition-colors ${payment === p.value ? 'border-walnut bg-[var(--amber-soft)]' : 'border-border hover:bg-surface-2'}`}>
-                  <span className="flex items-center gap-2">
-                    <input type="radio" name="payment" checked={payment === p.value} onChange={() => setPayment(p.value)} />
-                    <span className="text-sm font-medium text-fg">{p.label}</span>
-                  </span>
-                  <span className="mt-1 block text-xs text-muted">{p.hint}</span>
-                </label>
-              ))}
-            </div>
-          </Card>
+          {/* Payment method (hidden for now — orders default to Cash on Delivery) */}
+          {PAYMENTS_ENABLED && (
+            <Card className="space-y-3">
+              <h2 className="font-display text-lg text-fg">Payment method</h2>
+              <div className="grid gap-2 sm:grid-cols-3">
+                {PAYMENTS.map((p) => (
+                  <label key={p.value} className={`cursor-pointer rounded-[var(--radius-sm)] border p-3 transition-colors ${payment === p.value ? 'border-walnut bg-[var(--amber-soft)]' : 'border-border hover:bg-surface-2'}`}>
+                    <span className="flex items-center gap-2">
+                      <input type="radio" name="payment" checked={payment === p.value} onChange={() => setPayment(p.value)} />
+                      <span className="text-sm font-medium text-fg">{p.label}</span>
+                    </span>
+                    <span className="mt-1 block text-xs text-muted">{p.hint}</span>
+                  </label>
+                ))}
+              </div>
+            </Card>
+          )}
 
           {/* Voucher + summary */}
           <Card className="space-y-4">
