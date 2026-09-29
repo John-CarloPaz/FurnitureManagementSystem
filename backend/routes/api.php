@@ -125,6 +125,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/orders/{order}', [OrderController::class, 'show']);
         Route::post('/orders/{order}/transition', [OrderController::class, 'transition']);
         Route::get('/orders/{order}/transitions', [OrderController::class, 'transitions']);
+        Route::post('/orders/{order}/pay', [OrderController::class, 'pay']); // customer online payment
         Route::post('/orders/{order}/payments', [OrderController::class, 'payments']);
 
         // ---- Manufacturing (per-item production stages) ----

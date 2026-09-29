@@ -1,15 +1,19 @@
+import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Wallet } from 'lucide-react'
 import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { StatusPill } from '@/components/ui/status-pill'
 import { FsmStepper } from '@/components/orders/fsm-stepper'
 import { DeliveryTracking } from '@/components/delivery/delivery-tracking'
-import { useOrder } from '@/hooks/use-orders'
+import { useOrder, usePayOrder } from '@/hooks/use-orders'
 import { peso } from '@/lib/status'
 
 export function StorefrontOrderDetail() {
   const { id } = useParams()
   const { data: order, isLoading } = useOrder(Number(id))
+  const pay = usePayOrder(Number(id))
+  const [reference, setReference] = useState('')
 
   if (isLoading) return <p className="py-16 text-center text-muted">Loading…</p>
   if (!order) return <p className="py-16 text-center text-muted">Order not found. <Link to="/shop/orders" className="text-walnut">My orders</Link></p>
@@ -29,6 +33,24 @@ export function StorefrontOrderDetail() {
       </div>
 
       <Card><FsmStepper state={order.status} /></Card>
+
+      {order.payment_status !== 'PAID' && (order.payment_method === 'GCASH' || order.payment_method === 'BANK') && (
+        <Card className="space-y-3 border-walnut" >
+          <h2 className="flex items-center gap-2 font-display text-lg text-fg"><Wallet size={18} /> Complete your payment</h2>
+          <p className="text-sm text-muted">
+            {order.payment_method === 'GCASH'
+              ? <>Send <b className="text-fg">{peso(order.total)}</b> to GCash <b className="text-fg">0917-000-0000</b> (Cedarside Holding Corp.), then enter your reference number below.</>
+              : <>Transfer <b className="text-fg">{peso(order.total)}</b> to <b className="text-fg">BPI 1234-5678-90</b> (Cedarside Holding Corp.), then enter your reference number below.</>}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Reference number (optional)" className="flex-1 rounded-[var(--radius-sm)] border border-border bg-bg px-3 py-2 text-sm text-fg outline-none focus:ring-2 focus:ring-[var(--amber)]" />
+            <Button size="pill" onClick={() => pay.mutate({ reference: reference.trim() || undefined })} disabled={pay.isPending}>
+              {pay.isPending ? 'Confirming…' : "I've paid"}
+            </Button>
+          </div>
+          {pay.isError && <p className="text-sm text-[var(--status-danger)]">Couldn't confirm payment. Please try again.</p>}
+        </Card>
+      )}
 
       <Card className="p-0">
         <div className="border-b border-border px-6 py-4"><h2 className="font-display text-lg text-fg">Items</h2></div>

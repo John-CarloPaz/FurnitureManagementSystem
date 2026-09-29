@@ -3,6 +3,7 @@ import type { OrderState } from '@/lib/status'
 import {
   fetchOrder,
   fetchOrders,
+  payOrder,
   placeOrder,
   recordPayment,
   transitionOrder,
@@ -25,6 +26,17 @@ export function usePlaceOrder() {
   return useMutation({
     mutationFn: (input: PlaceOrderInput) => placeOrder(input),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['orders'] }),
+  })
+}
+
+export function usePayOrder(orderId: number) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (vars: { reference?: string }) => payOrder(orderId, vars.reference),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['orders', orderId] })
+      qc.invalidateQueries({ queryKey: ['orders'] })
+    },
   })
 }
 

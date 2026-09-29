@@ -107,6 +107,11 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
   return data.data
 }
 
+export async function payOrder(id: number, reference?: string): Promise<Order> {
+  const { data } = await api.post(`/orders/${id}/pay`, { reference })
+  return data.data
+}
+
 export async function transitionOrder(id: number, to: OrderState, note?: string): Promise<Order> {
   const { data } = await api.post(`/orders/${id}/transition`, { to, note })
   return data.data

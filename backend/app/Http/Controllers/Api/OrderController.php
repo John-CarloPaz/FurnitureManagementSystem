@@ -16,6 +16,7 @@ use App\Http\Resources\OrderTransitionResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Validation\ValidationException;
 
 class OrderController extends Controller
 {
@@ -79,6 +80,28 @@ class OrderController extends Controller
         $this->authorize('view', $order);
 
         return OrderTransitionResource::collection($order->transitions()->with('actor')->get());
+    }
+
+    /** Customer pays for their own GCash/Bank order (simulated) — records the payment and marks it paid. */
+    public function pay(Request $request, Order $order, RecordPaymentAction $action): OrderResource
+    {
+        abort_unless($order->customer_id === $request->user()?->id, 403);
+
+        $validated = $request->validate(['reference' => ['nullable', 'string', 'max:100']]);
+
+        if ($order->payment_status === 'PAID') {
+            throw ValidationException::withMessages(['payment' => ['This order is already paid.']]);
+        }
+        if (! in_array($order->payment_method, ['GCASH', 'BANK'], true)) {
+            throw ValidationException::withMessages(['payment' => ['This order is not payable online.']]);
+        }
+
+        $remaining = max(0.0, (float) $order->total - (float) $order->amount_paid);
+        $note = isset($validated['reference']) ? 'Customer payment ref: '.$validated['reference'] : 'Customer online payment';
+
+        $order = $action->execute($order, $remaining, $order->payment_method, $request->user(), $note);
+
+        return new OrderResource($order->load(['customer', 'items', 'payments']));
     }
 
     /** Record a payment (admin) — updates amount_paid + payment_status. */
