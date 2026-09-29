@@ -15,6 +15,8 @@ import { UsersPage } from '@/pages/users-page'
 import { RolesPage } from '@/pages/roles-page'
 import { AuditPage } from '@/pages/audit-page'
 import { VouchersPage } from '@/pages/vouchers-page'
+import { ReturnsPage } from '@/pages/returns-page'
+import { IssuesPage } from '@/pages/issues-page'
 import { AcceptInvitationPage } from '@/pages/accept-invitation-page'
 import { RegisterPage } from '@/pages/register-page'
 import { StorefrontLayout } from '@/components/storefront/storefront-layout'
@@ -67,6 +69,8 @@ export default function App() {
             <Route path="shop-floor" element={<ShopFloorPage />} />
             <Route path="deliveries" element={<DeliveriesPage />} />
             <Route path="vouchers" element={<VouchersPage />} />
+            <Route path="returns" element={<ReturnsPage />} />
+            <Route path="issues" element={<IssuesPage />} />
             <Route path="kpi" element={<AnalyticsPage />} />
             <Route path="reports" element={<ReportsPage />} />
             <Route path="users" element={<UsersPage />} />

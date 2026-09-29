@@ -1,19 +1,30 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Wallet } from 'lucide-react'
+import { ArrowLeft, Wallet, RotateCcw, LifeBuoy } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { StatusPill } from '@/components/ui/status-pill'
 import { FsmStepper } from '@/components/orders/fsm-stepper'
 import { DeliveryTracking } from '@/components/delivery/delivery-tracking'
 import { useOrder, usePayOrder } from '@/hooks/use-orders'
+import { useCreateReturn } from '@/hooks/use-returns'
+import { useCreateIssue } from '@/hooks/use-issues'
+import { RETURN_REASONS, labelize } from '@/lib/returns-api'
+import { ISSUE_CATEGORIES } from '@/lib/issues-api'
 import { peso } from '@/lib/status'
 
 export function StorefrontOrderDetail() {
   const { id } = useParams()
-  const { data: order, isLoading } = useOrder(Number(id))
-  const pay = usePayOrder(Number(id))
+  const orderId = Number(id)
+  const { data: order, isLoading } = useOrder(orderId)
+  const pay = usePayOrder(orderId)
+  const createReturn = useCreateReturn(orderId)
+  const createIssue = useCreateIssue(orderId)
   const [reference, setReference] = useState('')
+  const [returnReason, setReturnReason] = useState(RETURN_REASONS[0] as string)
+  const [returnDesc, setReturnDesc] = useState('')
+  const [issueCat, setIssueCat] = useState(ISSUE_CATEGORIES[0] as string)
+  const [issueDesc, setIssueDesc] = useState('')
 
   if (isLoading) return <p className="py-16 text-center text-muted">Loading…</p>
   if (!order) return <p className="py-16 text-center text-muted">Order not found. <Link to="/shop/orders" className="text-walnut">My orders</Link></p>
@@ -91,6 +102,60 @@ export function StorefrontOrderDetail() {
           {order.delivery.driver && <p className="text-sm text-muted">Your rider: <span className="text-fg">{order.delivery.driver}</span></p>}
           <DeliveryTracking delivery={order.delivery} />
         </Card>
+      )}
+
+      {(order.status === 'DELIVERED' || order.status === 'COMPLETED') && (
+        <>
+          {/* Return / refund */}
+          <Card className="space-y-3">
+            <h2 className="flex items-center gap-2 font-display text-lg text-fg"><RotateCcw size={17} /> Return or refund</h2>
+            {order.returns && order.returns.length > 0 ? (
+              <div className="rounded-[var(--radius-sm)] border border-border bg-surface-2 p-3 text-sm">
+                <p className="text-fg"><b>{labelize(order.returns[0].reason)}</b> — {labelize(order.returns[0].status)}</p>
+                {order.returns[0].resolution_note && <p className="text-muted">{order.returns[0].resolution_note}</p>}
+                {order.returns[0].refund_amount && <p className="text-muted">Refund: {peso(order.returns[0].refund_amount)}</p>}
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex flex-wrap gap-2">
+                  <select value={returnReason} onChange={(e) => setReturnReason(e.target.value)} className="rounded-[var(--radius-sm)] border border-border bg-bg px-3 py-2 text-sm text-fg">
+                    {RETURN_REASONS.map((r) => <option key={r} value={r}>{labelize(r)}</option>)}
+                  </select>
+                </div>
+                <textarea rows={2} value={returnDesc} onChange={(e) => setReturnDesc(e.target.value)} placeholder="Tell us what's wrong (optional)" className="w-full rounded-[var(--radius-sm)] border border-border bg-bg px-3 py-2 text-sm text-fg outline-none focus:ring-2 focus:ring-[var(--amber)]" />
+                <Button size="pill" onClick={() => createReturn.mutate({ reason: returnReason, description: returnDesc.trim() || undefined })} disabled={createReturn.isPending}>
+                  {createReturn.isPending ? 'Submitting…' : 'Request return/refund'}
+                </Button>
+                {createReturn.isError && <p className="text-sm text-[var(--status-danger)]">Couldn't submit the request.</p>}
+              </div>
+            )}
+          </Card>
+
+          {/* Report an issue */}
+          <Card className="space-y-3">
+            <h2 className="flex items-center gap-2 font-display text-lg text-fg"><LifeBuoy size={17} /> Report an issue</h2>
+            {order.issues && order.issues.length > 0 && (
+              <div className="space-y-2">
+                {order.issues.map((i) => (
+                  <div key={i.id} className="rounded-[var(--radius-sm)] border border-border bg-surface-2 p-3 text-sm">
+                    <p className="text-fg"><b>{labelize(i.category)}</b> — {labelize(i.status)}</p>
+                    <p className="text-muted">{i.description}</p>
+                    {i.resolution_note && <p className="text-muted">Resolution: {i.resolution_note}</p>}
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="space-y-2">
+              <select value={issueCat} onChange={(e) => setIssueCat(e.target.value)} className="rounded-[var(--radius-sm)] border border-border bg-bg px-3 py-2 text-sm text-fg">
+                {ISSUE_CATEGORIES.map((c) => <option key={c} value={c}>{labelize(c)}</option>)}
+              </select>
+              <textarea rows={2} value={issueDesc} onChange={(e) => setIssueDesc(e.target.value)} placeholder="Describe the problem" className="w-full rounded-[var(--radius-sm)] border border-border bg-bg px-3 py-2 text-sm text-fg outline-none focus:ring-2 focus:ring-[var(--amber)]" />
+              <Button size="pill" onClick={() => { if (issueDesc.trim()) createIssue.mutate({ category: issueCat, description: issueDesc.trim() }, { onSuccess: () => setIssueDesc('') }) }} disabled={createIssue.isPending || !issueDesc.trim()}>
+                {createIssue.isPending ? 'Submitting…' : 'Report issue'}
+              </Button>
+            </div>
+          </Card>
+        </>
       )}
 
       {order.delivery_address && (

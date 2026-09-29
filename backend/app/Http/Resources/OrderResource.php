@@ -42,6 +42,8 @@ class OrderResource extends JsonResource
             'delivery' => $this->whenLoaded('deliveryAssignment', fn () => $this->deliveryAssignment
                 ? new DeliveryAssignmentResource($this->deliveryAssignment)
                 : null),
+            'returns' => ReturnRequestResource::collection($this->whenLoaded('returnRequests')),
+            'issues' => IssueReportResource::collection($this->whenLoaded('issueReports')),
             'placed_at' => $this->placed_at,
             'confirmed_at' => $this->confirmed_at,
             'delivered_at' => $this->delivered_at,

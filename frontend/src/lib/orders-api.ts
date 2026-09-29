@@ -2,6 +2,8 @@ import { api } from './api'
 import type { OrderState } from './status'
 import type { Paginated } from './products-api'
 import type { DeliveryEvent, DeliveryProof } from './delivery-api'
+import type { ReturnRequest } from './returns-api'
+import type { IssueReport } from './issues-api'
 
 export interface OrderItem {
   id: number
@@ -66,6 +68,8 @@ export interface Order {
   payments?: OrderPayment[]
   transitions?: OrderTransition[]
   delivery?: OrderDelivery | null
+  returns?: ReturnRequest[]
+  issues?: IssueReport[]
   placed_at: string | null
   confirmed_at: string | null
   delivered_at: string | null

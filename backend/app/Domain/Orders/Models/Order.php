@@ -97,4 +97,16 @@ class Order extends Model
     {
         return $this->hasOne(DeliveryAssignment::class);
     }
+
+    /** @return HasMany<ReturnRequest, $this> */
+    public function returnRequests(): HasMany
+    {
+        return $this->hasMany(ReturnRequest::class)->latest();
+    }
+
+    /** @return HasMany<IssueReport, $this> */
+    public function issueReports(): HasMany
+    {
+        return $this->hasMany(IssueReport::class)->latest();
+    }
 }

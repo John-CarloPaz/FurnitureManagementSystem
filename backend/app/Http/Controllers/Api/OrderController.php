@@ -62,6 +62,7 @@ class OrderController extends Controller
         return new OrderResource($order->load([
             'customer', 'items', 'transitions.actor', 'payments',
             'deliveryAssignment.driver', 'deliveryAssignment.events.creator', 'deliveryAssignment.proof',
+            'returnRequests', 'issueReports',
         ]));
     }
 

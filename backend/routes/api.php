@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\DeliveryAddressController;
 use App\Http\Controllers\Api\DeliveryController;
 use App\Http\Controllers\Api\DssController;
 use App\Http\Controllers\Api\InvitationController;
+use App\Http\Controllers\Api\IssueController;
 use App\Http\Controllers\Api\ManufacturingController;
 use App\Http\Controllers\Api\ModelVersionController;
 use App\Http\Controllers\Api\NotificationController;
@@ -15,6 +16,7 @@ use App\Http\Controllers\Api\PhAddressController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\RegisterController;
+use App\Http\Controllers\Api\ReturnController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\StorefrontController;
@@ -117,6 +119,14 @@ Route::prefix('v1')->group(function () {
         // ---- Product reviews (customer, post-delivery) ----
         Route::post('/shop/products/{product}/reviews', [ReviewController::class, 'store']);
         Route::delete('/reviews/{review}', [ReviewController::class, 'destroy']);
+
+        // ---- Returns / refunds & issue reports (post-delivery) ----
+        Route::get('/returns', [ReturnController::class, 'index']);
+        Route::post('/orders/{order}/returns', [ReturnController::class, 'store']);
+        Route::patch('/returns/{returnRequest}', [ReturnController::class, 'update']);
+        Route::get('/issues', [IssueController::class, 'index']);
+        Route::post('/orders/{order}/issues', [IssueController::class, 'store']);
+        Route::patch('/issues/{issueReport}', [IssueController::class, 'update']);
 
         // ---- Vouchers ----
         Route::post('/vouchers/preview', [VoucherController::class, 'preview']); // any customer, before {voucher}
