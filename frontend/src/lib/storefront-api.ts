@@ -42,3 +42,13 @@ export async function fetchShopCategories(): Promise<string[]> {
   const { data } = await api.get('/shop/categories')
   return data.data
 }
+
+export interface ShopSettings {
+  shipping_fee: number
+  vat_rate: number
+}
+
+export async function fetchShopSettings(): Promise<ShopSettings> {
+  const { data } = await api.get('/shop/settings')
+  return data.data
+}

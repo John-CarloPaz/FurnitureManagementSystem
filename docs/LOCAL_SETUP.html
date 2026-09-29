@@ -1,0 +1,691 @@
+<title>Cedarside Local Setup</title>
+<style>
+  :root {
+    /* Light — warm walnut & amber, matching the app's own palette */
+    --bg: #f6f1e9;
+    --surface: #fffdf9;
+    --surface-2: #f0e8db;
+    --border: #e2d6c4;
+    --ink: #2b2019;
+    --muted: #7c6d5d;
+    --walnut: #6b4423;
+    --walnut-soft: #8a5a34;
+    --amber: #c17d2e;
+    --amber-soft: #f5e7d1;
+    --code-bg: #2a211a;
+    --code-ink: #f3ead9;
+    --code-muted: #b7a68f;
+    --ok: #3f7d4a;
+    --warn: #b5731a;
+    --danger: #b0402f;
+    --shadow: 0 1px 2px rgba(43,32,25,.06), 0 8px 24px rgba(43,32,25,.06);
+    --radius: 12px;
+    --maxw: 60rem;
+    color-scheme: light;
+    --sans: "Public Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --display: "Fraunces", Georgia, "Times New Roman", serif;
+    --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", "Cascadia Code", Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #17110c;
+      --surface: #201812;
+      --surface-2: #2a2019;
+      --border: #3a2d22;
+      --ink: #ece2d4;
+      --muted: #a2917d;
+      --walnut: #d7a373;
+      --walnut-soft: #c48c58;
+      --amber: #e0a45c;
+      --amber-soft: #33261a;
+      --code-bg: #0f0b08;
+      --code-ink: #f0e7d7;
+      --code-muted: #9c8a73;
+      --ok: #6bbf78;
+      --warn: #e0a45c;
+      --danger: #e07a68;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #17110c;
+    --surface: #201812;
+    --surface-2: #2a2019;
+    --border: #3a2d22;
+    --ink: #ece2d4;
+    --muted: #a2917d;
+    --walnut: #d7a373;
+    --walnut-soft: #c48c58;
+    --amber: #e0a45c;
+    --amber-soft: #33261a;
+    --code-bg: #0f0b08;
+    --code-ink: #f0e7d7;
+    --code-muted: #9c8a73;
+    --ok: #6bbf78;
+    --warn: #e0a45c;
+    --danger: #e07a68;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  }
+
+  /* ---- Top bar ---- */
+  .bar {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 50;
+    background: color-mix(in srgb, var(--surface) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .bar-inner {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; margin-right: auto; }
+  .logo {
+    width: 34px; height: 34px; border-radius: 9px; flex: none;
+    background: linear-gradient(150deg, var(--walnut), var(--walnut-soft));
+    display: grid; place-items: center; color: #fff; font-family: var(--display); font-weight: 600; font-size: 18px;
+  }
+  .brand b { font-family: var(--display); font-weight: 600; font-size: 15px; line-height: 1.1; }
+  .brand span { display: block; font-size: 11px; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+
+  .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 999px; padding: 2px; background: var(--surface-2); }
+  .seg button {
+    font: inherit; font-size: 12.5px; font-weight: 600; border: 0; background: transparent; color: var(--muted);
+    padding: 5px 12px; border-radius: 999px; cursor: pointer; white-space: nowrap;
+  }
+  .seg button[aria-pressed="true"] { background: var(--walnut); color: #fff; }
+  .iconbtn {
+    font: inherit; border: 1px solid var(--border); background: var(--surface-2); color: var(--ink);
+    width: 36px; height: 32px; border-radius: 999px; cursor: pointer; display: grid; place-items: center;
+  }
+  .iconbtn:hover { border-color: var(--walnut); }
+
+  .progress-wrap { width: 100%; }
+  .progress-track { height: 6px; border-radius: 999px; background: var(--surface-2); overflow: hidden; border: 1px solid var(--border); }
+  .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--amber), var(--walnut)); transition: width .35s ease; }
+  .progress-label { font-size: 11.5px; color: var(--muted); margin-top: 4px; font-variant-numeric: tabular-nums; }
+
+  /* ---- Layout ---- */
+  main { max-width: var(--maxw); margin: 0 auto; padding: 16px; padding-block: 40px; }
+  .wrap { max-width: 46rem; }
+
+  .eyebrow { text-transform: uppercase; letter-spacing: .16em; font-size: 12px; font-weight: 700; color: var(--amber); }
+  h1 { font-family: var(--display); font-weight: 600; font-size: clamp(2rem, 6vw, 3.1rem); line-height: 1.05; margin: 10px 0 6px; text-wrap: balance; letter-spacing: -.01em; }
+  .lede { font-size: 1.15rem; color: var(--muted); max-width: 40rem; }
+  h2 { font-family: var(--display); font-weight: 600; font-size: 1.7rem; margin: 0 0 2px; text-wrap: balance; }
+  h3 { font-size: 1.06rem; margin: 0 0 4px; }
+  p { margin: 0 0 12px; }
+  a { color: var(--walnut); text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1px; }
+  a:hover { color: var(--amber); }
+  code:not(pre code) {
+    font-family: var(--mono); font-size: .88em; background: var(--surface-2);
+    border: 1px solid var(--border); padding: .08em .4em; border-radius: 5px; color: var(--walnut-soft);
+    overflow-wrap: anywhere;
+  }
+  :focus-visible { outline: 2.5px solid var(--amber); outline-offset: 2px; border-radius: 4px; }
+  hr { border: 0; border-top: 1px solid var(--border); margin: 40px 0; }
+
+  .meta { display: flex; gap: 20px; flex-wrap: wrap; margin: 22px 0 0; padding: 16px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .meta div { }
+  .meta .k { font-size: 11.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .meta .v { font-family: var(--display); font-size: 1.15rem; }
+
+  /* ---- Track heading ---- */
+  .track { display: flex; align-items: center; gap: 14px; margin: 48px 0 8px; }
+  .track .tnum {
+    font-family: var(--display); font-size: 1.1rem; font-weight: 600; color: #fff; flex: none;
+    width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center;
+    background: linear-gradient(150deg, var(--walnut), var(--walnut-soft));
+  }
+  .track .terminal-tag { margin-left: auto; font-family: var(--mono); font-size: 11.5px; color: var(--muted); border: 1px dashed var(--border); padding: 3px 9px; border-radius: 7px; }
+
+  /* ---- Step ---- */
+  .step { position: relative; padding: 2px 0 2px 40px; margin: 22px 0; }
+  .step > input[type="checkbox"] {
+    position: absolute; left: 0; top: 2px; width: 24px; height: 24px; margin: 0; cursor: pointer; accent-color: var(--walnut);
+  }
+  .step-head { display: flex; align-items: baseline; gap: 10px; }
+  .step-n { font-family: var(--mono); font-size: 12px; color: var(--amber); font-weight: 700; }
+  .step h3 { transition: color .2s; }
+  .step.done h3 { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--border); }
+
+  /* ---- Code block ---- */
+  .code { position: relative; margin: 12px 0; border-radius: 10px; background: var(--code-bg); box-shadow: var(--shadow); overflow: hidden; }
+  .code-top { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,.08); }
+  .dots { display: flex; gap: 6px; }
+  .dots i { width: 10px; height: 10px; border-radius: 50%; display: block; opacity: .8; }
+  .dots i:nth-child(1){ background:#e0745f; } .dots i:nth-child(2){ background:#e0b24f; } .dots i:nth-child(3){ background:#7cbf6a; }
+  .code-top .fn { font-family: var(--mono); font-size: 11.5px; color: var(--code-muted); margin-left: 4px; }
+  .copy {
+    margin-left: auto; font: inherit; font-size: 11.5px; font-weight: 600; font-family: var(--sans);
+    color: var(--code-ink); background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14);
+    padding: 3px 10px; border-radius: 999px; cursor: pointer;
+  }
+  .copy:hover { background: rgba(255,255,255,.16); }
+  .copy.copied { color: #1b2a17; background: #9bd487; border-color: #9bd487; }
+  pre { margin: 0; padding: 14px 16px; overflow-x: auto; }
+  pre code { font-family: var(--mono); font-size: 13px; line-height: 1.7; color: var(--code-ink); white-space: pre; display: block; }
+  pre code .c { color: var(--code-muted); } /* comment */
+  pre code .p { color: #e0b24f; } /* prompt/emphasis */
+
+  /* ---- Callouts ---- */
+  .note { border-radius: 10px; padding: 12px 14px 12px 44px; margin: 14px 0; position: relative; border: 1px solid var(--border); background: var(--surface); font-size: 14.5px; }
+  .note::before { position: absolute; left: 14px; top: 12px; font-size: 16px; line-height: 1.3; }
+  .note.tip { border-color: color-mix(in srgb, var(--ok) 40%, var(--border)); background: color-mix(in srgb, var(--ok) 9%, var(--surface)); }
+  .note.tip::before { content: "✓"; color: var(--ok); font-weight: 800; }
+  .note.warn { border-color: color-mix(in srgb, var(--warn) 45%, var(--border)); background: color-mix(in srgb, var(--warn) 10%, var(--surface)); }
+  .note.warn::before { content: "!"; color: var(--warn); font-weight: 800; }
+  .note.info { border-color: color-mix(in srgb, var(--walnut) 35%, var(--border)); background: color-mix(in srgb, var(--walnut) 8%, var(--surface)); }
+  .note.info::before { content: "i"; color: var(--walnut); font-weight: 800; font-style: italic; }
+  .note b { color: var(--ink); }
+
+  /* ---- Prereq cards ---- */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 12px; margin: 16px 0; }
+  .pc { border: 1px solid var(--border); border-radius: 10px; padding: 14px; background: var(--surface); }
+  .pc h3 { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .pc .ver { font-family: var(--mono); font-size: 11px; color: var(--amber); background: var(--amber-soft); padding: 2px 7px; border-radius: 6px; white-space: nowrap; }
+  .pc p { font-size: 13.5px; color: var(--muted); margin: 4px 0 0; }
+
+  /* OS-conditional command blocks */
+  [data-os="win"] .os-nix, [data-os="nix"] .os-win { display: none; }
+
+  details { border: 1px solid var(--border); border-radius: 10px; margin: 10px 0; background: var(--surface); overflow: hidden; }
+  details > summary { cursor: pointer; padding: 12px 14px; font-weight: 600; list-style: none; display: flex; align-items: center; gap: 10px; }
+  details > summary::-webkit-details-marker { display: none; }
+  details > summary::before { content: "›"; color: var(--amber); font-weight: 800; transition: transform .2s; display: inline-block; }
+  details[open] > summary::before { transform: rotate(90deg); }
+  details .body { padding: 0 14px 12px 14px; font-size: 14.5px; }
+  details .body p:last-child { margin-bottom: 0; }
+
+  .cheat { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .cheat table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  .cheat th, .cheat td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .cheat th { background: var(--surface-2); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .cheat tr:last-child td { border-bottom: 0; }
+  .cheat td code { white-space: nowrap; }
+  .cheat-scroll { overflow-x: auto; }
+
+  footer { max-width: var(--maxw); margin: 0 auto; padding: 24px 16px 8px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--border); }
+</style>
+
+<div class="bar">
+  <div class="bar-inner">
+    <div class="brand">
+      <div class="logo">C</div>
+      <div><b>Cedarside</b><span>Local setup</span></div>
+    </div>
+    <div class="seg" role="group" aria-label="Operating system">
+      <button id="os-win" aria-pressed="true">Windows</button>
+      <button id="os-nix" aria-pressed="false">macOS / Linux</button>
+    </div>
+    <button class="iconbtn" id="theme" title="Toggle light / dark" aria-label="Toggle light or dark theme">◐</button>
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" id="pfill"></div></div>
+      <div class="progress-label"><span id="pcount">0</span> of <span id="ptotal">0</span> steps done · your progress is saved on this device</div>
+    </div>
+  </div>
+</div>
+
+<main>
+  <div class="wrap">
+    <p class="eyebrow">Web-Based Real-Time Monitoring System · 3D Model Integration</p>
+    <h1>Run Cedarside on your computer</h1>
+    <p class="lede">A start-to-finish guide to installing the furniture manufacturing &amp; delivery monitoring system locally — the Laravel API and the React storefront/CRM. No prior Laravel or React experience assumed. Follow every step in order and tick it off.</p>
+
+    <div class="meta">
+      <div><div class="k">Time</div><div class="v">~20–30 min</div></div>
+      <div><div class="k">You'll run</div><div class="v">2 terminals</div></div>
+      <div><div class="k">Backend</div><div class="v">Laravel 12 · PHP 8.2</div></div>
+      <div><div class="k">Frontend</div><div class="v">React 18 · Vite</div></div>
+    </div>
+
+    <div class="note info" style="margin-top:22px">
+      <b>The mental model.</b> This app is two programs that talk to each other. The <b>backend</b> (Laravel) is the API + database, running at <code>http://127.0.0.1:8000</code>. The <b>frontend</b> (React) is the website you look at, running at <code>http://localhost:5173</code>. You keep <b>both running at the same time</b> in two separate terminal windows. The frontend automatically forwards its <code>/api</code> calls to the backend, so there's nothing to wire up by hand.
+    </div>
+    <div class="note tip">
+      <b>Pick your OS once.</b> Use the <b>Windows / macOS·Linux</b> switch in the top bar — every command below updates to match. It's set to Windows to start.
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- PREREQUISITES -->
+  <div class="wrap">
+    <div class="track"><div class="tnum">0</div><h2>Install the prerequisites</h2></div>
+    <p>You need these five tools first. If you already have them, skip ahead — but check the versions.</p>
+  </div>
+
+  <div class="cards">
+    <div class="pc"><h3>Git <span class="ver">any</span></h3><p>Downloads the code. <a href="https://git-scm.com/downloads" target="_blank" rel="noopener">Get Git ↗</a></p></div>
+    <div class="pc"><h3>PHP <span class="ver">8.2 or newer</span></h3><p>Runs the backend. On Windows the easiest way is <a href="https://herd.laravel.com" target="_blank" rel="noopener">Laravel Herd ↗</a> (bundles PHP + Composer).</p></div>
+    <div class="pc"><h3>Composer <span class="ver">2.x</span></h3><p>Installs PHP packages. <a href="https://getcomposer.org/download/" target="_blank" rel="noopener">Get Composer ↗</a> (included in Herd).</p></div>
+    <div class="pc"><h3>Node.js <span class="ver">20 LTS+</span></h3><p>Runs the frontend (includes npm). <a href="https://nodejs.org/en/download" target="_blank" rel="noopener">Get Node ↗</a></p></div>
+    <div class="pc"><h3>A code editor <span class="ver">optional</span></h3><p>For editing the <code>.env</code> file — <a href="https://code.visualstudio.com/" target="_blank" rel="noopener">VS Code ↗</a> or Notepad works.</p></div>
+  </div>
+
+  <div class="wrap">
+    <p>Then <b>verify</b> each one is installed. Open a terminal (Windows: <b>PowerShell</b>; macOS: <b>Terminal</b>) and run these one by one — each should print a version number, not an error:</p>
+    <div class="code" data-code>
+      <div class="code-top"><span class="dots"><i></i><i></i><i></i></span><span class="fn">verify tools</span><button class="copy">Copy</button></div>
+<pre><code>git --version
+php --version
+composer --version
+node --version
+npm --version</code></pre>
+    </div>
+    <div class="note warn"><b>Node must be 20 or higher.</b> If <code>node --version</code> shows v18 or lower, the frontend build will fail — install the current LTS from the link above and reopen your terminal.</div>
+  </div>
+
+  <hr>
+
+  <!-- GET THE CODE -->
+  <div class="wrap">
+    <div class="track"><div class="tnum">1</div><h2>Download the code</h2></div>
+
+    <div class="step">
+      <input type="checkbox" data-step id="s-clone">
+      <div class="step-head"><span class="step-n">1.1</span></div>
+      <label for="s-clone"><h3>Clone the repository</h3></label>
+      <p>Pick a folder you'll remember (e.g. your Documents), then run:</p>
+      <div class="code" data-code>
+        <div class="code-top"><span class="dots"><i></i><i></i><i></i></span><span class="fn">clone</span><button class="copy">Copy</button></div>
+<pre><code>git clone https://github.com/John-CarloPaz/FurnitureManagementSystem.git
+cd FurnitureManagementSystem</code></pre>
+      </div>
+      <p>Inside you'll find two folders: <code>backend</code> (Laravel) and <code>frontend</code> (React). That's what the next two tracks set up.</p>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- BACKEND -->
+  <div class="wrap">
+    <div class="track"><div class="tnum">2</div><h2>Set up the backend</h2><span class="terminal-tag">Terminal 1</span></div>
+    <p>Everything in this track happens inside the <code>backend</code> folder. Keep this terminal open — it'll run the API server at the end.</p>
+
+    <div class="step">
+      <input type="checkbox" data-step id="s-be-cd">
+      <div class="step-head"><span class="step-n">2.1</span></div>
+      <label for="s-be-cd"><h3>Enter the backend folder &amp; install PHP packages</h3></label>
+      <div class="code" data-code>
+        <div class="code-top"><span class="dots"><i></i><i></i><i></i></span><span class="fn">install dependencies</span><button class="copy">Copy</button></div>
+<pre><code>cd backend
+composer install</code></pre>
+      </div>
+      <p>This downloads Laravel and all its packages into <code>vendor/</code>. It can take a couple of minutes the first time.</p>
+    </div>
+
+    <div class="step">
+      <input type="checkbox" data-step id="s-be-env">
+      <div class="step-head"><span class="step-n">2.2</span></div>
+      <label for="s-be-env"><h3>Create your <code>.env</code> configuration file</h3></label>
+      <p>Copy the example file to a real one:</p>
+      <div class="code os-win" data-code>
+        <div class="code-top"><span class="dots"><i></i><i></i><i></i></span><span class="fn">PowerShell</span><button class="copy">Copy</button></div>
+<pre><code>Copy-Item .env.example .env</code></pre>
+      </div>
+      <div class="code os-nix" data-code>
+        <div class="code-top"><span class="dots"><i></i><i></i><i></i></span><span class="fn">bash / zsh</span><button class="copy">Copy</button></div>
+<pre><code>cp .env.example .env</code></pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <input type="checkbox" data-step id="s-be-key">
+      <div class="step-head"><span class="step-n">2.3</span></div>
+      <label for="s-be-key"><h3>Generate the app encryption key</h3></label>
+      <div class="code" data-code>
+        <div class="code-top"><span class="dots"><i></i><i></i><i></i></span><span class="fn">app key</span><button class="copy">Copy</button></div>
+<pre><code>php artisan key:generate</code></pre>
+      </div>
+      <p>This fills in <code>APP_KEY</code> in your <code>.env</code>. Some data (like saved addresses) is encrypted with it, so don't skip this.</p>
+    </div>
+
+    <div class="step">
+      <input type="checkbox" data-step id="s-be-db">
+      <div class="step-head"><span class="step-n">2.4</span></div>
+      <label for="s-be-db"><h3>Set up the database (easy path — SQLite)</h3></label>
+      <p>SQLite is a database in a single file — <b>nothing to install</b>. Open <code>backend/.env</code> in your editor and change the database line to:</p>
+      <div class="code" data-code>
+        <div class="code-top"><span class="dots"><i></i><i></i><i></i></span><span class="fn">backend/.env</span><button class="copy">Copy</button></div>
+<pre><code>DB_CONNECTION=sqlite</code></pre>
+      </div>
+      <p>Then <b>delete (or comment out with <code>#</code>) these four lines</b> just below it, so they don't confuse SQLite:</p>
+      <div class="code" data-code>
+        <div class="code-top"><span class="dots"><i></i><i></i><i></i></span><span class="fn">backend/.env — remove these</span><button class="copy">Copy</button></div>
+<pre><code>DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=furniture_monitoring
+DB_USERNAME=postgres</code></pre>
+      </div>
+      <p>Now create the empty database file:</p>
+      <div class="code os-win" data-code>
+        <div class="code-top"><span class="dots"><i></i><i></i><i></i></span><span class="fn">PowerShell</span><button class="copy">Copy</button></div>
+<pre><code>New-Item -ItemType File database/database.sqlite</code></pre>
+      </div>
+      <div class="code os-nix" data-code>
+        <div class="code-top"><span class="dots"><i></i><i></i><i></i></span><span class="fn">bash / zsh</span><button class="copy">Copy</button></div>
+<pre><code>touch database/database.sqlite</code></pre>
+      </div>
+      <details>
+        <summary>Prefer PostgreSQL instead? (optional)</summary>
+        <div class="body">
+          <p>The project's example is configured for Postgres. If you have <a href="https://www.postgresql.org/download/" target="_blank" rel="noopener">PostgreSQL 17 ↗</a> installed, keep <code>DB_CONNECTION=pgsql</code> and instead create a database named <code>furniture_monitoring</code>, then set <code>DB_USERNAME</code> / <code>DB_PASSWORD</code> in <code>.env</code> to your Postgres login. Skip the SQLite file step above. Everything else in this guide is identical.</p>
+        </div>
+      </details>
+    </div>
+
+    <div class="step">
+      <input type="checkbox" data-step id="s-be-admin">
+      <div class="step-head"><span class="step-n">2.5</span></div>
+      <label for="s-be-admin"><h3>Set the admin password</h3></label>
+      <p>Find <code>ADMIN_PASSWORD</code> in <code>backend/.env</code> and give it a value — this becomes your super-admin login. For local use anything memorable is fine:</p>
+      <div class="code" data-code>
+        <div class="code-top"><span class="dots"><i></i><i></i><i></i></span><span class="fn">backend/.env</span><button class="copy">Copy</button></div>
+<pre><code>ADMIN_PASSWORD=password123</code></pre>
+      </div>
+      <div class="note warn"><b>Don't leave this blank.</b> If <code>ADMIN_PASSWORD</code> is empty, the seeder skips creating the admin account and you won't be able to log in to the CRM.</div>
+      <div class="note info"><b>The keys you can ignore locally.</b> Leave <code>MESHY_API_KEY</code> and <code>BREVO_API_KEY</code> empty. The app runs fine without them: 3D generation is simply disabled (you can still upload a <code>.glb</code> by hand), and emails are written to <code>storage/logs/laravel.log</code> instead of being sent.</div>
+    </div>
+
+    <div class="step">
+      <input type="checkbox" data-step id="s-be-migrate">
+      <div class="step-head"><span class="step-n">2.6</span></div>
+      <label for="s-be-migrate"><h3>Create the tables &amp; seed the roles + admin</h3></label>
+      <div class="code" data-code>
+        <div class="code-top"><span class="dots"><i></i><i></i><i></i></span><span class="fn">migrate &amp; seed</span><button class="copy">Copy</button></div>
+<pre><code>php artisan migrate --seed</code></pre>
+      </div>
+      <p>This builds every table and runs the <code>RolePermissionSeeder</code>, which creates all the roles/permissions and your super-admin account (<code>admin@cedarside.local</code>). Type <code>yes</code> if it asks to create the SQLite database.</p>
+    </div>
+
+    <div class="step">
+      <input type="checkbox" data-step id="s-be-storage">
+      <div class="step-head"><span class="step-n">2.7</span></div>
+      <label for="s-be-storage"><h3>Link the storage folder</h3></label>
+      <div class="code" data-code>
+        <div class="code-top"><span class="dots"><i></i><i></i><i></i></span><span class="fn">storage link</span><button class="copy">Copy</button></div>
+<pre><code>php artisan storage:link</code></pre>
+      </div>
+      <p>Lets uploaded images and 3D files be served during local dev.</p>
+    </div>
+
+    <div class="step">
+      <input type="checkbox" data-step id="s-be-serve">
+      <div class="step-head"><span class="step-n">2.8</span></div>
+      <label for="s-be-serve"><h3>Start the API server</h3></label>
+      <div class="code" data-code>
+        <div class="code-top"><span class="dots"><i></i><i></i><i></i></span><span class="fn">run backend</span><button class="copy">Copy</button></div>
+<pre><code>php artisan serve</code></pre>
+      </div>
+      <p>Leave this running. You should see <code>Server running on http://127.0.0.1:8000</code>. Test it by opening <a href="http://127.0.0.1:8000/api/v1/health" target="_blank" rel="noopener">http://127.0.0.1:8000/api/v1/health</a> — it should return a small JSON with <code>"status":"healthy"</code>.</p>
+      <div class="note tip"><b>That's the backend done.</b> Open a <b>new</b> terminal window for the frontend — don't close this one.</div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- FRONTEND -->
+  <div class="wrap">
+    <div class="track"><div class="tnum">3</div><h2>Set up the frontend</h2><span class="terminal-tag">Terminal 2</span></div>
+    <p>In your <b>second</b> terminal, go back to the project root and into <code>frontend</code>.</p>
+
+    <div class="step">
+      <input type="checkbox" data-step id="s-fe-install">
+      <div class="step-head"><span class="step-n">3.1</span></div>
+      <label for="s-fe-install"><h3>Enter the frontend folder &amp; install packages</h3></label>
+      <div class="code" data-code>
+        <div class="code-top"><span class="dots"><i></i><i></i><i></i></span><span class="fn">install dependencies</span><button class="copy">Copy</button></div>
+<pre><code>cd frontend
+npm install</code></pre>
+      </div>
+      <p>Downloads React, Vite and everything else into <code>node_modules/</code>.</p>
+    </div>
+
+    <div class="step">
+      <input type="checkbox" data-step id="s-fe-env">
+      <div class="step-head"><span class="step-n">3.2</span></div>
+      <label for="s-fe-env"><h3>Configuration — nothing to do</h3></label>
+      <p>For local dev the frontend needs <b>no configuration</b>. The Vite dev server automatically forwards <code>/api</code> requests to the backend on port 8000. (The <code>VITE_API_URL</code> setting is only used in production.)</p>
+    </div>
+
+    <div class="step">
+      <input type="checkbox" data-step id="s-fe-dev">
+      <div class="step-head"><span class="step-n">3.3</span></div>
+      <label for="s-fe-dev"><h3>Start the website</h3></label>
+      <div class="code" data-code>
+        <div class="code-top"><span class="dots"><i></i><i></i><i></i></span><span class="fn">run frontend</span><button class="copy">Copy</button></div>
+<pre><code>npm run dev</code></pre>
+      </div>
+      <p>Leave this running too. It prints a local URL — usually <a href="http://localhost:5173" target="_blank" rel="noopener">http://localhost:5173</a>.</p>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- FIRST RUN -->
+  <div class="wrap">
+    <div class="track"><div class="tnum">4</div><h2>Open it &amp; log in</h2></div>
+
+    <div class="step">
+      <input type="checkbox" data-step id="s-open">
+      <div class="step-head"><span class="step-n">4.1</span></div>
+      <label for="s-open"><h3>Visit the app</h3></label>
+      <p>Open <a href="http://localhost:5173" target="_blank" rel="noopener">http://localhost:5173</a>. Guests land on the <b>marketplace</b> (<code>/shop</code>). To reach the staff CRM, go to the <b>Sign in</b> link (or <code>/login</code>).</p>
+    </div>
+
+    <div class="step">
+      <input type="checkbox" data-step id="s-login">
+      <div class="step-head"><span class="step-n">4.2</span></div>
+      <label for="s-login"><h3>Sign in as the super-admin</h3></label>
+      <p>Use the account the seeder created (the password is whatever you set in step&nbsp;2.5):</p>
+      <div class="cheat" style="margin:12px 0">
+        <div class="cheat-scroll"><table>
+          <tr><th>Field</th><th>Value</th></tr>
+          <tr><td>Email</td><td><code>admin@cedarside.local</code></td></tr>
+          <tr><td>Password</td><td><code>password123</code> <span style="color:var(--muted)">(your ADMIN_PASSWORD)</span></td></tr>
+        </table></div>
+      </div>
+      <p>The super-admin sees every feature — dashboard, shop floor, deliveries, users &amp; roles, audit log, reports. You can also create a <b>customer</b> account from the storefront's <b>Sign up</b> page (<code>/register</code>) to try the shopping + order-tracking side.</p>
+      <div class="note tip"><b>You shipped it! 🎉</b> Both servers are running and you're logged in. Everything below is reference material.</div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- OPTIONAL 3D -->
+  <div class="wrap">
+    <div class="track"><div class="tnum">5</div><h2>Optional: enable 3D generation</h2></div>
+    <p>Product photos turn into 3D models via the Meshy AI service. This is optional — skip it unless you want to test that feature.</p>
+    <ol style="padding-left:1.2rem; color:var(--ink)">
+      <li>Get an API key from Meshy and put it in <code>backend/.env</code> as <code>MESHY_API_KEY=...</code>.</li>
+      <li>Generation runs on a queue, so start a worker in a <b>third</b> terminal (inside <code>backend</code>):</li>
+    </ol>
+    <div class="code" data-code>
+      <div class="code-top"><span class="dots"><i></i><i></i><i></i></span><span class="fn">queue worker (backend)</span><button class="copy">Copy</button></div>
+<pre><code>php artisan queue:work</code></pre>
+    </div>
+    <div class="note info"><b>No key?</b> No problem — leave it empty and upload a <code>.glb</code> file manually when creating a product. The 3D viewer still works.</div>
+  </div>
+
+  <hr>
+
+  <!-- CHEAT SHEET -->
+  <div class="wrap">
+    <h2 style="margin-bottom:12px">Command cheat sheet</h2>
+    <p>Handy commands once you're set up. Run backend commands inside <code>backend</code>, frontend commands inside <code>frontend</code>.</p>
+  </div>
+  <div class="cheat" style="margin:16px 0">
+    <div class="cheat-scroll"><table>
+      <tr><th>What</th><th>Where</th><th>Command</th></tr>
+      <tr><td>Start the API</td><td>backend</td><td><code>php artisan serve</code></td></tr>
+      <tr><td>Start the website</td><td>frontend</td><td><code>npm run dev</code></td></tr>
+      <tr><td>Run backend tests</td><td>backend</td><td><code>php artisan test</code></td></tr>
+      <tr><td>Static analysis (Larastan)</td><td>backend</td><td><code>vendor/bin/phpstan analyse</code></td></tr>
+      <tr><td>Format PHP (Pint)</td><td>backend</td><td><code>vendor/bin/pint</code></td></tr>
+      <tr><td>Reset the database</td><td>backend</td><td><code>php artisan migrate:fresh --seed</code></td></tr>
+      <tr><td>Run frontend tests</td><td>frontend</td><td><code>npm run test</code></td></tr>
+      <tr><td>Lint the frontend</td><td>frontend</td><td><code>npm run lint</code></td></tr>
+      <tr><td>Production build check</td><td>frontend</td><td><code>npm run build</code></td></tr>
+    </table></div>
+  </div>
+
+  <hr>
+
+  <!-- TROUBLESHOOTING -->
+  <div class="wrap">
+    <h2 style="margin-bottom:6px">Troubleshooting</h2>
+    <p>The usual first-run snags and their fixes.</p>
+
+    <details>
+      <summary><code>composer install</code> fails: "could not find driver"</summary>
+      <div class="body"><p>A PHP database extension is off. Open your <code>php.ini</code> and remove the <code>;</code> in front of <code>extension=pdo_sqlite</code> (and <code>extension=pdo_pgsql</code> if using Postgres), plus <code>extension=mbstring</code>, <code>fileinfo</code>, <code>openssl</code>, <code>curl</code>. Save and reopen your terminal. If you used Laravel Herd, these are already enabled.</p></div>
+    </details>
+    <details>
+      <summary>The website loads but data won't load / network errors</summary>
+      <div class="body"><p>Make sure the <b>backend is still running</b> in Terminal 1 (<code>php artisan serve</code>) and that you opened <b>http://localhost:5173</b> — not port 8000. The frontend proxies to the backend, so both must be up.</p></div>
+    </details>
+    <details>
+      <summary>Port 8000 (or 5173) is already in use</summary>
+      <div class="body"><p>Run the backend on another port with <code>php artisan serve --port=8001</code>, then in <code>frontend/vite.config.ts</code> change the proxy <code>target</code> to <code>http://127.0.0.1:8001</code> and restart <code>npm run dev</code>. Vite will also auto-pick a new port (5174…) if 5173 is taken.</p></div>
+    </details>
+    <details>
+      <summary>Login says invalid credentials</summary>
+      <div class="body"><p>You almost certainly seeded before setting <code>ADMIN_PASSWORD</code>. Set it in <code>.env</code> (step 2.5), then re-run <code>php artisan migrate:fresh --seed</code> to recreate the admin. Use <code>admin@cedarside.local</code> as the email.</p></div>
+    </details>
+    <details>
+      <summary>3D viewer just says "Loading model…"</summary>
+      <div class="body"><p>Expected locally without a <code>MESHY_API_KEY</code> — no model was generated. Either set the key and run <code>php artisan queue:work</code> (step 5), or upload a <code>.glb</code> file manually on the product page.</p></div>
+    </details>
+    <details>
+      <summary>No emails arrive (welcome / order updates)</summary>
+      <div class="body"><p>Also expected locally. With <code>MAIL_MAILER=log</code>, emails are written to <code>backend/storage/logs/laravel.log</code> instead of being sent. To send real email, set a Brevo API key in <code>BREVO_API_KEY</code>.</p></div>
+    </details>
+    <details>
+      <summary><code>npm install</code> or <code>npm run dev</code> errors</summary>
+      <div class="body"><p>Check <code>node --version</code> is 20+. If it's older, install the current LTS and reopen your terminal. If problems persist, delete <code>frontend/node_modules</code> and run <code>npm install</code> again.</p></div>
+    </details>
+  </div>
+</main>
+
+<footer>
+  Cedarside Holding Corp. — local development guide. Backend: Laravel 12 + PHP 8.2 (SQLite for local). Frontend: React 18 + Vite. Keep both servers running in separate terminals.
+</footer>
+
+<script>
+(function () {
+  "use strict";
+  var store = {
+    get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  };
+
+  /* ---- OS switch ---- */
+  var root = document.documentElement;
+  var osWin = document.getElementById("os-win");
+  var osNix = document.getElementById("os-nix");
+  function setOS(os) {
+    root.setAttribute("data-os", os);
+    var win = os === "win";
+    osWin.setAttribute("aria-pressed", String(win));
+    osNix.setAttribute("aria-pressed", String(!win));
+    store.set("cedar-os", os);
+  }
+  var savedOS = store.get("cedar-os");
+  setOS(savedOS === "nix" ? "nix" : "win");
+  osWin.addEventListener("click", function () { setOS("win"); });
+  osNix.addEventListener("click", function () { setOS("nix"); });
+
+  /* ---- Theme toggle (default follows system) ---- */
+  var themeBtn = document.getElementById("theme");
+  var savedTheme = store.get("cedar-theme");
+  if (savedTheme === "dark" || savedTheme === "light") root.setAttribute("data-theme", savedTheme);
+  themeBtn.addEventListener("click", function () {
+    var isDark;
+    var explicit = root.getAttribute("data-theme");
+    if (explicit) { isDark = explicit === "dark"; }
+    else { isDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches; }
+    var next = isDark ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    store.set("cedar-theme", next);
+  });
+
+  /* ---- Copy buttons ---- */
+  document.querySelectorAll("[data-code]").forEach(function (block) {
+    var btn = block.querySelector(".copy");
+    var codeEl = block.querySelector("pre code");
+    if (!btn || !codeEl) return;
+    btn.addEventListener("click", function () {
+      var text = codeEl.innerText;
+      function ok() {
+        btn.textContent = "Copied!";
+        btn.classList.add("copied");
+        setTimeout(function () { btn.textContent = "Copy"; btn.classList.remove("copied"); }, 1600);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(ok).catch(function () { selectFallback(codeEl); });
+      } else {
+        selectFallback(codeEl);
+      }
+    });
+  });
+  function selectFallback(codeEl) {
+    try {
+      var range = document.createRange();
+      range.selectNodeContents(codeEl);
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    } catch (e) {}
+  }
+
+  /* ---- Progress tracking ---- */
+  var steps = Array.prototype.slice.call(document.querySelectorAll("input[data-step]"));
+  var fill = document.getElementById("pfill");
+  var pcount = document.getElementById("pcount");
+  var ptotal = document.getElementById("ptotal");
+  ptotal.textContent = String(steps.length);
+
+  function keyFor(cb) { return "cedar-step-" + cb.id; }
+  function refresh() {
+    var done = 0;
+    steps.forEach(function (cb) {
+      var box = cb.closest(".step");
+      if (cb.checked) { done++; if (box) box.classList.add("done"); }
+      else if (box) box.classList.remove("done");
+    });
+    pcount.textContent = String(done);
+    fill.style.width = steps.length ? (done / steps.length * 100).toFixed(1) + "%" : "0%";
+  }
+  steps.forEach(function (cb) {
+    if (store.get(keyFor(cb)) === "1") cb.checked = true;
+    cb.addEventListener("change", function () {
+      store.set(keyFor(cb), cb.checked ? "1" : "0");
+      refresh();
+    });
+  });
+  refresh();
+})();
+</script>

@@ -42,13 +42,22 @@ export function StorefrontOrderDetail() {
               </tr>
             ))}
           </tbody>
-          <tfoot>
-            <tr className="border-t border-border">
-              <td colSpan={2} className="px-6 py-3 text-right text-muted">Total</td>
-              <td className="px-6 py-3 text-right font-display text-lg text-fg">{peso(order.total)}</td>
-            </tr>
-          </tfoot>
         </table>
+        <div className="space-y-1.5 border-t border-border px-6 py-4 text-sm">
+          <div className="flex justify-between text-muted"><span>Subtotal</span><span className="font-mono text-fg">{peso(order.subtotal)}</span></div>
+          {Number(order.discount_amount) > 0 && (
+            <div className="flex justify-between text-muted"><span>Discount{order.voucher_code ? ` (${order.voucher_code})` : ''}</span><span className="font-mono">−{peso(order.discount_amount)}</span></div>
+          )}
+          <div className="flex justify-between text-muted"><span>Shipping fee</span><span className="font-mono text-fg">{peso(order.delivery_fee)}</span></div>
+          <div className="flex justify-between text-muted"><span>VAT</span><span className="font-mono text-fg">{peso(order.tax_amount)}</span></div>
+          <div className="flex justify-between border-t border-border pt-2 text-base">
+            <span className="font-medium text-fg">Total</span>
+            <span className="font-display text-xl text-fg">{peso(order.total)}</span>
+          </div>
+          {order.payment_method && (
+            <p className="pt-1 text-xs text-muted">Payment: {order.payment_method} · {order.payment_status}</p>
+          )}
+        </div>
       </Card>
 
       {order.delivery && (

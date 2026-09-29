@@ -6,7 +6,7 @@ import {
   placeOrder,
   recordPayment,
   transitionOrder,
-  type PlaceOrderItem,
+  type PlaceOrderInput,
 } from '@/lib/orders-api'
 
 export function useOrders(status?: string) {
@@ -23,8 +23,7 @@ export function useOrder(id: number) {
 export function usePlaceOrder() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (vars: { items: PlaceOrderItem[]; deliveryAddress?: string; notes?: string }) =>
-      placeOrder(vars.items, vars.deliveryAddress, vars.notes),
+    mutationFn: (input: PlaceOrderInput) => placeOrder(input),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['orders'] }),
   })
 }

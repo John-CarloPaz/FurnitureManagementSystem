@@ -20,6 +20,8 @@ class PlaceOrderRequest extends FormRequest
             'items.*.quantity' => ['required', 'integer', 'min:1'],
             'delivery_address' => ['nullable', 'string', 'max:1000'],
             'notes' => ['nullable', 'string', 'max:1000'],
+            'voucher_code' => ['nullable', 'string', 'max:40'],
+            'payment_method' => ['nullable', 'in:COD,GCASH,BANK'],
         ];
     }
 }

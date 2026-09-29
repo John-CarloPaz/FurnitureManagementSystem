@@ -43,6 +43,15 @@ class StorefrontController extends Controller
         );
     }
 
+    /** Public storefront pricing settings so the checkout can show shipping + VAT live. */
+    public function settings(): JsonResponse
+    {
+        return response()->json(['data' => [
+            'shipping_fee' => (float) config('shop.shipping_fee'),
+            'vat_rate' => (float) config('shop.vat_rate'),
+        ]]);
+    }
+
     /** Distinct categories among published products, for the storefront filter tabs. */
     public function categories(): JsonResponse
     {

@@ -18,10 +18,15 @@ use Illuminate\Support\Carbon;
  * @property OrderState $status
  * @property string $subtotal
  * @property string $delivery_fee
+ * @property string $tax_amount
+ * @property string $discount_amount
+ * @property int|null $voucher_id
+ * @property string|null $voucher_code
  * @property string $total
  * @property string $downpayment
  * @property string $amount_paid
  * @property string $payment_status
+ * @property string|null $payment_method
  * @property string|null $delivery_address
  * @property string|null $notes
  * @property Carbon|null $placed_at
@@ -34,7 +39,8 @@ class Order extends Model
 {
     protected $fillable = [
         'order_number', 'customer_id', 'status',
-        'subtotal', 'delivery_fee', 'total', 'downpayment', 'amount_paid', 'payment_status',
+        'subtotal', 'delivery_fee', 'tax_amount', 'discount_amount', 'voucher_id', 'voucher_code',
+        'total', 'downpayment', 'amount_paid', 'payment_status', 'payment_method',
         'delivery_address', 'notes', 'placed_at', 'confirmed_at', 'delivered_at',
     ];
 
@@ -48,6 +54,8 @@ class Order extends Model
             'delivered_at' => 'datetime',
             'subtotal' => 'decimal:2',
             'delivery_fee' => 'decimal:2',
+            'tax_amount' => 'decimal:2',
+            'discount_amount' => 'decimal:2',
             'total' => 'decimal:2',
             'downpayment' => 'decimal:2',
             'amount_paid' => 'decimal:2',
@@ -58,6 +66,12 @@ class Order extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'customer_id');
+    }
+
+    /** @return BelongsTo<Voucher, $this> */
+    public function voucher(): BelongsTo
+    {
+        return $this->belongsTo(Voucher::class);
     }
 
     /** @return HasMany<OrderItem, $this> */

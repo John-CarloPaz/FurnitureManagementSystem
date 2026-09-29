@@ -52,10 +52,14 @@ export interface Order {
   customer?: { id: number; name: string; email: string }
   subtotal: string
   delivery_fee: string
+  tax_amount: string
+  discount_amount: string
+  voucher_code: string | null
   total: string
   downpayment: string
   amount_paid: string
   payment_status: string
+  payment_method: string | null
   delivery_address: string | null
   notes: string | null
   items?: OrderItem[]
@@ -84,12 +88,22 @@ export async function fetchOrder(id: number): Promise<Order> {
   return data.data
 }
 
-export async function placeOrder(
-  items: PlaceOrderItem[],
-  deliveryAddress?: string,
-  notes?: string,
-): Promise<Order> {
-  const { data } = await api.post('/orders', { items, delivery_address: deliveryAddress, notes })
+export interface PlaceOrderInput {
+  items: PlaceOrderItem[]
+  deliveryAddress?: string
+  notes?: string
+  voucherCode?: string
+  paymentMethod?: string
+}
+
+export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
+  const { data } = await api.post('/orders', {
+    items: input.items,
+    delivery_address: input.deliveryAddress,
+    notes: input.notes,
+    voucher_code: input.voucherCode,
+    payment_method: input.paymentMethod,
+  })
   return data.data
 }
 

@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\RegisterController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\StorefrontController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\VoucherController;
 use App\Http\Controllers\Api\WorkOrderController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -46,6 +47,7 @@ Route::prefix('v1')->group(function () {
 
     // Public marketplace — browse published products without an account.
     Route::get('/shop/products', [StorefrontController::class, 'products']);
+    Route::get('/shop/settings', [StorefrontController::class, 'settings']);
     Route::get('/shop/categories', [StorefrontController::class, 'categories']);
     Route::get('/shop/products/{product}', [StorefrontController::class, 'product']);
     Route::get('/shop/product-images/{image}/file', [StorefrontController::class, 'image']);
@@ -109,6 +111,13 @@ Route::prefix('v1')->group(function () {
         Route::get('/products/{product}/model-versions', [ModelVersionController::class, 'index']);
         Route::post('/products/{product}/model-versions', [ModelVersionController::class, 'store']);
         Route::get('/model-versions/{version}/download', [ModelVersionController::class, 'download']);
+
+        // ---- Vouchers ----
+        Route::post('/vouchers/preview', [VoucherController::class, 'preview']); // any customer, before {voucher}
+        Route::get('/vouchers', [VoucherController::class, 'index']);
+        Route::post('/vouchers', [VoucherController::class, 'store']);
+        Route::patch('/vouchers/{voucher}', [VoucherController::class, 'update']);
+        Route::delete('/vouchers/{voucher}', [VoucherController::class, 'destroy']);
 
         // ---- Orders (fulfillment) — authorized via OrderPolicy ----
         Route::get('/orders', [OrderController::class, 'index']);

@@ -5,6 +5,7 @@ namespace App\Domain\Orders\Actions;
 use App\Domain\Orders\Enums\OrderState;
 use App\Domain\Orders\Events\OrderPlaced;
 use App\Domain\Orders\Models\Order;
+use App\Domain\Orders\Support\PricingCalculator;
 use App\Domain\Products\Enums\ProductStatus;
 use App\Domain\Products\Models\Product;
 use App\Models\User;
@@ -13,12 +14,20 @@ use Illuminate\Validation\ValidationException;
 
 class PlaceOrderAction
 {
+    public function __construct(private readonly ResolveVoucher $voucher) {}
+
     /**
      * @param  array<int, array{product_id:int, quantity:int}>  $items
      */
-    public function execute(User $customer, array $items, ?string $deliveryAddress = null, ?string $notes = null): Order
-    {
-        return DB::transaction(function () use ($customer, $items, $deliveryAddress, $notes) {
+    public function execute(
+        User $customer,
+        array $items,
+        ?string $deliveryAddress = null,
+        ?string $notes = null,
+        ?string $voucherCode = null,
+        ?string $paymentMethod = null,
+    ): Order {
+        return DB::transaction(function () use ($customer, $items, $deliveryAddress, $notes, $voucherCode, $paymentMethod) {
             $subtotal = 0.0;
             $rows = [];
 
@@ -43,14 +52,26 @@ class PlaceOrderAction
                 ];
             }
 
+            $resolved = $this->voucher->execute($voucherCode, $subtotal);
+            if ($resolved['error'] !== null) {
+                throw ValidationException::withMessages(['voucher_code' => [$resolved['error']]]);
+            }
+
+            $pricing = PricingCalculator::compute($subtotal, $resolved['discount']);
+
             $order = Order::create([
                 'order_number' => 'PENDING',
                 'customer_id' => $customer->id,
                 'status' => OrderState::PLACED,
-                'subtotal' => $subtotal,
-                'delivery_fee' => 0,
-                'total' => $subtotal,
+                'subtotal' => $pricing['subtotal'],
+                'delivery_fee' => $pricing['shipping'],
+                'tax_amount' => $pricing['tax'],
+                'discount_amount' => $pricing['discount'],
+                'voucher_id' => $resolved['voucher']?->id,
+                'voucher_code' => $resolved['voucher']?->code,
+                'total' => $pricing['total'],
                 'payment_status' => 'UNPAID',
+                'payment_method' => $paymentMethod ?: 'COD',
                 'delivery_address' => $deliveryAddress,
                 'notes' => $notes,
                 'placed_at' => now(),
@@ -58,6 +79,10 @@ class PlaceOrderAction
 
             $order->update(['order_number' => 'ORD-'.str_pad((string) $order->id, 4, '0', STR_PAD_LEFT)]);
             $order->items()->createMany($rows);
+
+            if ($resolved['voucher'] !== null) {
+                $resolved['voucher']->increment('used_count');
+            }
             $order->transitions()->create([
                 'from_state' => null,
                 'to_state' => OrderState::PLACED,

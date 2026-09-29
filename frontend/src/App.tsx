@@ -14,6 +14,7 @@ import { ReportsPage } from '@/pages/reports-page'
 import { UsersPage } from '@/pages/users-page'
 import { RolesPage } from '@/pages/roles-page'
 import { AuditPage } from '@/pages/audit-page'
+import { VouchersPage } from '@/pages/vouchers-page'
 import { AcceptInvitationPage } from '@/pages/accept-invitation-page'
 import { RegisterPage } from '@/pages/register-page'
 import { StorefrontLayout } from '@/components/storefront/storefront-layout'
@@ -65,6 +66,7 @@ export default function App() {
             <Route path="orders/:id" element={<OrderDetailPage />} />
             <Route path="shop-floor" element={<ShopFloorPage />} />
             <Route path="deliveries" element={<DeliveriesPage />} />
+            <Route path="vouchers" element={<VouchersPage />} />
             <Route path="kpi" element={<AnalyticsPage />} />
             <Route path="reports" element={<ReportsPage />} />
             <Route path="users" element={<UsersPage />} />

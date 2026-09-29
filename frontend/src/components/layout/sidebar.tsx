@@ -11,6 +11,7 @@ import {
   Users,
   ShieldCheck,
   ScrollText,
+  Ticket,
   LogOut,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -32,6 +33,7 @@ const NAV: NavItem[] = [
   { to: '/orders', label: 'Orders', icon: ClipboardList, anyOf: ['orders.viewAny', 'orders.view.own'] },
   { to: '/shop-floor', label: 'Shop Floor', icon: Factory, anyOf: ['manufacturing.view'] },
   { to: '/deliveries', label: 'Deliveries', icon: Truck, anyOf: ['delivery.view'] },
+  { to: '/vouchers', label: 'Vouchers', icon: Ticket, anyOf: ['vouchers.viewAny'] },
   { to: '/kpi', label: 'Analytics', icon: BarChart3, anyOf: ['kpi.view', 'kpi.view.shopfloor', 'kpi.view.delivery'] },
   { to: '/reports', label: 'Reports', icon: PieChart, anyOf: ['reports.run', 'kpi.view', 'kpi.view.shopfloor', 'kpi.view.delivery'] },
   { to: '/users', label: 'Users', icon: Users, anyOf: ['users.view'] },

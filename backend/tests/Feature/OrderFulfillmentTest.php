@@ -65,7 +65,8 @@ class OrderFulfillmentTest extends TestCase
         ])
             ->assertCreated()
             ->assertJsonPath('data.status', 'PLACED')
-            ->assertJsonPath('data.total', '2500.00');
+            ->assertJsonPath('data.subtotal', '2500.00')
+            ->assertJsonPath('data.total', '3300.00'); // 2500 + 500 shipping + 300 VAT
 
         $this->assertDatabaseCount('order_items', 2);
     }

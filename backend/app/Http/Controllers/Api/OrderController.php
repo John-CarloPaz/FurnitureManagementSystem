@@ -47,6 +47,8 @@ class OrderController extends Controller
             $request->validated('items'),
             $request->validated('delivery_address'),
             $request->validated('notes'),
+            $request->validated('voucher_code'),
+            $request->validated('payment_method'),
         );
 
         return (new OrderResource($order->load(['customer', 'items'])))->response()->setStatusCode(201);

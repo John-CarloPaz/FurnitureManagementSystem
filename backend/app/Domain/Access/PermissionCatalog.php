@@ -88,6 +88,27 @@ class PermissionCatalog
             ],
         ],
         [
+            'key' => 'vouchers',
+            'label' => 'Vouchers & Discounts',
+            'abilities' => [
+                ['name' => 'vouchers.create', 'label' => 'Create', 'type' => 'crud', 'action' => 'create'],
+                ['name' => 'vouchers.viewAny', 'label' => 'Read', 'type' => 'crud', 'action' => 'read'],
+                ['name' => 'vouchers.update', 'label' => 'Update', 'type' => 'crud', 'action' => 'update'],
+                ['name' => 'vouchers.delete', 'label' => 'Delete', 'type' => 'crud', 'action' => 'delete'],
+            ],
+        ],
+        [
+            'key' => 'aftersales',
+            'label' => 'Returns, Refunds & Issues',
+            'abilities' => [
+                ['name' => 'returns.viewAny', 'label' => 'View return requests', 'type' => 'action'],
+                ['name' => 'returns.manage', 'label' => 'Approve / reject / refund', 'type' => 'action'],
+                ['name' => 'issues.viewAny', 'label' => 'View reported issues', 'type' => 'action'],
+                ['name' => 'issues.manage', 'label' => 'Resolve issues', 'type' => 'action'],
+                ['name' => 'reviews.moderate', 'label' => 'Moderate reviews', 'type' => 'action'],
+            ],
+        ],
+        [
             'key' => 'manufacturing',
             'label' => 'Manufacturing',
             'abilities' => [
