@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Domain\Products\Enums\ProductStatus;
 use App\Domain\Products\Models\Product;
 use App\Domain\Products\Models\ProductImage;
+use App\Domain\Settings\Support\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\StorefrontProductResource;
 use Illuminate\Http\JsonResponse;
@@ -49,8 +50,8 @@ class StorefrontController extends Controller
     public function settings(): JsonResponse
     {
         return response()->json(['data' => [
-            'shipping_fee' => (float) config('shop.shipping_fee'),
-            'vat_rate' => (float) config('shop.vat_rate'),
+            'shipping_fee' => (float) Settings::get('shop.shipping_fee', config('shop.shipping_fee')),
+            'vat_rate' => (float) Settings::get('shop.vat_rate', config('shop.vat_rate')),
         ]]);
     }
 

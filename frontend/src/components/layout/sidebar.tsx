@@ -14,6 +14,7 @@ import {
   Ticket,
   RotateCcw,
   LifeBuoy,
+  SlidersHorizontal,
   LogOut,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -43,6 +44,7 @@ const NAV: NavItem[] = [
   { to: '/users', label: 'Users', icon: Users, anyOf: ['users.view'] },
   { to: '/roles', label: 'Roles', icon: ShieldCheck, anyOf: ['roles.viewAny'] },
   { to: '/audit', label: 'Audit Log', icon: ScrollText, anyOf: ['audit.view'] },
+  { to: '/settings', label: 'Settings', icon: SlidersHorizontal, anyOf: ['settings.manage'] },
 ]
 
 export function Sidebar() {

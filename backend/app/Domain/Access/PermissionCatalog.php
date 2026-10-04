@@ -29,8 +29,8 @@ class PermissionCatalog
         'logistics_coordinator', 'delivery_personnel', 'customer', 'qa_tester',
     ];
 
-    /** Role-mutating permissions — reserved for super_admin (admin gets everything else). */
-    public const SUPER_ADMIN_ONLY = ['roles.create', 'roles.update', 'roles.delete'];
+    /** Permissions reserved for super_admin (admin gets everything else): role mutation + shop settings. */
+    public const SUPER_ADMIN_ONLY = ['roles.create', 'roles.update', 'roles.delete', 'settings.manage'];
 
     /**
      * @var list<array{key: string, label: string, abilities: list<array{name: string, label: string, type: string, action?: string}>}>
@@ -145,6 +145,13 @@ class PermissionCatalog
             'label' => 'Notifications',
             'abilities' => [
                 ['name' => 'notifications.view.own', 'label' => 'View own notifications', 'type' => 'action'],
+            ],
+        ],
+        [
+            'key' => 'settings',
+            'label' => 'Shop Settings',
+            'abilities' => [
+                ['name' => 'settings.manage', 'label' => 'Manage shipping fee & tax', 'type' => 'action'],
             ],
         ],
     ];

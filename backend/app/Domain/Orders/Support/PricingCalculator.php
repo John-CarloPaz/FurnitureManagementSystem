@@ -2,6 +2,8 @@
 
 namespace App\Domain\Orders\Support;
 
+use App\Domain\Settings\Support\Settings;
+
 /** Turns a subtotal + discount into the full order pricing breakdown (shipping + VAT + total). */
 class PricingCalculator
 {
@@ -10,9 +12,9 @@ class PricingCalculator
      */
     public static function compute(float $subtotal, float $discount = 0.0): array
     {
-        $shipping = (float) config('shop.shipping_fee');
+        $shipping = (float) Settings::get('shop.shipping_fee', config('shop.shipping_fee'));
         $taxable = max(0.0, $subtotal - $discount);
-        $tax = round($taxable * (float) config('shop.vat_rate'), 2);
+        $tax = round($taxable * (float) Settings::get('shop.vat_rate', config('shop.vat_rate')), 2);
         $total = round($taxable + $shipping + $tax, 2);
 
         return [

@@ -17,6 +17,7 @@ import { AuditPage } from '@/pages/audit-page'
 import { VouchersPage } from '@/pages/vouchers-page'
 import { ReturnsPage } from '@/pages/returns-page'
 import { IssuesPage } from '@/pages/issues-page'
+import { SettingsPage } from '@/pages/settings-page'
 import { AcceptInvitationPage } from '@/pages/accept-invitation-page'
 import { RegisterPage } from '@/pages/register-page'
 import { ForgotPasswordPage } from '@/pages/forgot-password-page'
@@ -75,6 +76,7 @@ export default function App() {
             <Route path="vouchers" element={<VouchersPage />} />
             <Route path="returns" element={<ReturnsPage />} />
             <Route path="issues" element={<IssuesPage />} />
+            <Route path="settings" element={<SettingsPage />} />
             <Route path="kpi" element={<AnalyticsPage />} />
             <Route path="reports" element={<ReportsPage />} />
             <Route path="users" element={<UsersPage />} />

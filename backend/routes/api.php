@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\RegisterController;
 use App\Http\Controllers\Api\ReturnController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\StorefrontController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\VoucherController;
@@ -73,6 +74,10 @@ Route::prefix('v1')->group(function () {
         Route::post('/auth/logout', [AuthController::class, 'logout']);
         Route::get('/auth/me', [AuthController::class, 'me']);
         Route::patch('/auth/profile', [ProfileController::class, 'update']); // self-service profile
+
+        // ---- Shop settings (super admin) ----
+        Route::get('/settings', [SettingsController::class, 'show']);
+        Route::patch('/settings', [SettingsController::class, 'update']);
 
         // ---- Saved delivery addresses (customer address book) ----
         Route::get('/addresses', [DeliveryAddressController::class, 'index']);
