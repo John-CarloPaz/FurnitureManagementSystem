@@ -7,6 +7,7 @@ export interface User {
   email: string
   company: string | null
   is_active: boolean
+  is_owner: boolean
   roles: string[]
   permissions: string[]
   created_at: string

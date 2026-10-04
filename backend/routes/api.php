@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\ManufacturingController;
 use App\Http\Controllers\Api\ModelVersionController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\OwnerController;
 use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\PhAddressController;
 use App\Http\Controllers\Api\ProductController;
@@ -89,6 +90,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/users', [UserController::class, 'store'])->middleware('permission:users.create');
         Route::patch('/users/{user}', [UserController::class, 'update'])->middleware('permission:users.update');
         Route::delete('/users/{user}', [UserController::class, 'destroy'])->middleware('permission:users.delete');
+        Route::post('/owner/transfer', [OwnerController::class, 'transfer']); // owner-only (checked in controller)
 
         // ---- Roles & permissions (super-admin role builder) ----
         Route::get('/permissions', [RoleController::class, 'permissions'])->middleware('permission:roles.viewAny');

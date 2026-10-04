@@ -36,6 +36,7 @@ class UserController extends Controller
     public function update(UpdateUserRequest $request, User $user, AuditRecorder $audit): UserResource
     {
         $this->assertNotSelf($request, $user, 'You cannot change your own account here.');
+        $this->guardOwner($request, $user);
 
         $user->fill($request->safe()->only('name', 'is_active'))->save(); // name/is_active audited by the observer
 
@@ -57,6 +58,10 @@ class UserController extends Controller
     {
         $this->assertNotSelf($request, $user, 'You cannot delete your own account.');
 
+        if ($user->isOwner()) {
+            throw ValidationException::withMessages(['user' => ['The system owner cannot be deleted.']]);
+        }
+
         $user->delete();
 
         return response()->json(null, 204);
@@ -66,6 +71,21 @@ class UserController extends Controller
     {
         if ($request->user()?->id === $user->id) {
             throw ValidationException::withMessages(['user' => [$message]]);
+        }
+    }
+
+    /** The system owner's access can't be revoked by anyone — no deactivation, no demotion. */
+    private function guardOwner(Request $request, User $user): void
+    {
+        if (! $user->isOwner()) {
+            return;
+        }
+
+        if ($request->has('is_active') && ! $request->boolean('is_active')) {
+            throw ValidationException::withMessages(['user' => ['The system owner cannot be deactivated.']]);
+        }
+        if ($request->filled('role') && (string) $request->string('role') !== 'super_admin') {
+            throw ValidationException::withMessages(['user' => ['The system owner must remain a super admin.']]);
         }
     }
 }

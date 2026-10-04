@@ -19,6 +19,7 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'company' => $this->company,
             'is_active' => $this->is_active,
+            'is_owner' => (bool) $this->is_owner,
             'roles' => $this->getRoleNames(),
             'permissions' => $this->getAllPermissions()->pluck('name')->values(),
             'created_at' => $this->created_at,

@@ -58,7 +58,14 @@ class User extends Authenticatable
             'phone' => 'encrypted',
             'address' => 'encrypted',
             'is_active' => 'boolean',
+            'is_owner' => 'boolean',
         ];
+    }
+
+    /** The root super-admin — protected from revocation; only this account may transfer ownership. */
+    public function isOwner(): bool
+    {
+        return (bool) $this->is_owner;
     }
 
     /**

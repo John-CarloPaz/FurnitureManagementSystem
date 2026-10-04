@@ -1,12 +1,12 @@
 import { useState } from 'react'
-import { UserPlus, Trash2, Copy, Check } from 'lucide-react'
+import { UserPlus, Trash2, Copy, Check, Crown } from 'lucide-react'
 import { Card, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { InviteUserForm } from '@/components/access/invite-user-form'
 import { useAuth } from '@/hooks/use-auth'
 import { useRoles } from '@/hooks/use-roles'
 import { useInvitations, useRevokeInvitation } from '@/hooks/use-invitations'
-import { useUsers, useUpdateUser, useDeleteUser } from '@/hooks/use-users'
+import { useUsers, useUpdateUser, useDeleteUser, useTransferOwnership } from '@/hooks/use-users'
 import { apiError } from '@/lib/api-error'
 import { prettyRole } from '@/lib/roles-api'
 import type { Invitation } from '@/lib/invitations-api'
@@ -88,6 +88,8 @@ export function UsersPage() {
   const roles = useRoles()
   const updateUser = useUpdateUser()
   const deleteUser = useDeleteUser()
+  const transfer = useTransferOwnership()
+  const isOwnerViewer = !!user?.is_owner
   const [inviting, setInviting] = useState(false)
 
   // super_admin (roles.create) can assign any role; others can't hand out the privileged ones.
@@ -98,6 +100,11 @@ export function UsersPage() {
   const onDelete = (id: number, name: string) => {
     if (!window.confirm(`Remove ${name}?`)) return
     deleteUser.mutate(id, { onError: (e) => window.alert(apiError(e)) })
+  }
+
+  const onTransfer = (id: number, name: string) => {
+    if (!window.confirm(`Transfer system ownership to ${name}? You'll stay a super admin but lose owner privileges.`)) return
+    transfer.mutate(id, { onError: (e) => window.alert(apiError(e)) })
   }
 
   return (
@@ -146,11 +153,19 @@ export function UsersPage() {
                 return (
                   <tr key={u.id} className="border-t border-border">
                     <td className="px-6 py-3">
-                      <p className="text-fg">{u.name}{isSelf && <span className="ml-1 text-xs text-muted">(you)</span>}</p>
+                      <p className="flex items-center gap-1.5 text-fg">
+                        {u.name}
+                        {isSelf && <span className="text-xs text-muted">(you)</span>}
+                        {u.is_owner && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-[var(--amber-soft)] px-2 py-0.5 text-[10px] font-medium text-walnut">
+                            <Crown size={10} /> Owner
+                          </span>
+                        )}
+                      </p>
                       <p className="text-xs text-muted">{u.username ? `@${u.username} · ` : ''}{u.email}</p>
                     </td>
                     <td className="px-6 py-3">
-                      {canUpdate && !isSelf ? (
+                      {canUpdate && !isSelf && !u.is_owner ? (
                         <select
                           value={u.roles[0] ?? ''}
                           onChange={(e) => updateUser.mutate({ id: u.id, role: e.target.value }, { onError: (err) => window.alert(apiError(err)) })}
@@ -165,7 +180,7 @@ export function UsersPage() {
                       )}
                     </td>
                     <td className="px-6 py-3">
-                      {canUpdate && !isSelf ? (
+                      {canUpdate && !isSelf && !u.is_owner ? (
                         <button
                           onClick={() => updateUser.mutate({ id: u.id, is_active: !u.is_active }, { onError: (err) => window.alert(apiError(err)) })}
                           className="text-xs font-medium"
@@ -180,14 +195,24 @@ export function UsersPage() {
                       )}
                     </td>
                     <td className="px-6 py-3 text-right">
-                      {canDelete && !isSelf && (
-                        <button
-                          onClick={() => onDelete(u.id, u.name)}
-                          className="inline-flex items-center gap-1 text-xs text-muted hover:text-[var(--status-danger)]"
-                        >
-                          <Trash2 size={13} /> Remove
-                        </button>
-                      )}
+                      <div className="flex items-center justify-end gap-3">
+                        {isOwnerViewer && !isSelf && !u.is_owner && u.is_active && (
+                          <button
+                            onClick={() => onTransfer(u.id, u.name)}
+                            className="inline-flex items-center gap-1 text-xs text-walnut hover:underline"
+                          >
+                            <Crown size={13} /> Make owner
+                          </button>
+                        )}
+                        {canDelete && !isSelf && !u.is_owner && (
+                          <button
+                            onClick={() => onDelete(u.id, u.name)}
+                            className="inline-flex items-center gap-1 text-xs text-muted hover:text-[var(--status-danger)]"
+                          >
+                            <Trash2 size={13} /> Remove
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 )

@@ -17,3 +17,8 @@ export async function updateUser(
 export async function deleteUser(id: number): Promise<void> {
   await api.delete(`/users/${id}`)
 }
+
+export async function transferOwnership(userId: number): Promise<User> {
+  const { data } = await api.post('/owner/transfer', { user_id: userId })
+  return data.data
+}

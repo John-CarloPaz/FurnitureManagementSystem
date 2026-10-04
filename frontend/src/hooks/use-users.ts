@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { deleteUser, fetchUsers, updateUser } from '@/lib/users-api'
+import { deleteUser, fetchUsers, transferOwnership, updateUser } from '@/lib/users-api'
 
 export function useUsers() {
   return useQuery({ queryKey: ['users'], queryFn: fetchUsers })
@@ -22,4 +22,15 @@ export function useUpdateUser() {
 export function useDeleteUser() {
   const invalidate = useInvalidateUsers()
   return useMutation({ mutationFn: (id: number) => deleteUser(id), onSuccess: invalidate })
+}
+
+export function useTransferOwnership() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (userId: number) => transferOwnership(userId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['users'] })
+      qc.invalidateQueries({ queryKey: ['me'] }) // current user is no longer the owner
+    },
+  })
 }

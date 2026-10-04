@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Domain\Access\PermissionCatalog;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
@@ -68,6 +69,36 @@ class RolePermissionSeeder extends Seeder
         }
 
         $this->seedAdmin();
+        $this->seedOwner();
+    }
+
+    /** The root super-admin (furniturecedarside@gmail.com). Designated owner only if none exists yet. */
+    private function seedOwner(): void
+    {
+        $email = (string) config('owner.email');
+        if ($email === '') {
+            return;
+        }
+
+        $password = config('owner.password');
+
+        $owner = User::where('email', $email)->first();
+        if ($owner === null) {
+            $owner = User::create([
+                'name' => (string) config('owner.name', 'Cedarside Owner'),
+                'email' => $email,
+                'password' => $password ?: Str::password(20), // random if unset — recover via reset link
+                'is_active' => true,
+            ]);
+        } elseif ($password) {
+            $owner->update(['password' => $password, 'is_active' => true]);
+        }
+
+        $owner->syncRoles([PermissionCatalog::SUPER_ADMIN]);
+
+        if (! User::where('is_owner', true)->exists()) {
+            $owner->forceFill(['is_owner' => true])->save();
+        }
     }
 
     private function seedAdmin(): void
