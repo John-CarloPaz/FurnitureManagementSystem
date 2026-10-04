@@ -3,9 +3,11 @@ import { Outlet } from 'react-router-dom'
 import { Sidebar } from './sidebar'
 import { Topbar } from './topbar'
 import { CommandPalette } from '@/components/command/command-palette'
+import { usePrefetchKpi } from '@/hooks/use-kpi'
 
 export function AppShell() {
   const [cmdOpen, setCmdOpen] = useState(false)
+  usePrefetchKpi() // warm KPIs for Dashboard/Analytics/Reports on CRM load
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
