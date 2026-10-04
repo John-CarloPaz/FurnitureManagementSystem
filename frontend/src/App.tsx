@@ -19,6 +19,8 @@ import { ReturnsPage } from '@/pages/returns-page'
 import { IssuesPage } from '@/pages/issues-page'
 import { AcceptInvitationPage } from '@/pages/accept-invitation-page'
 import { RegisterPage } from '@/pages/register-page'
+import { ForgotPasswordPage } from '@/pages/forgot-password-page'
+import { ResetPasswordPage } from '@/pages/reset-password-page'
 import { StorefrontLayout } from '@/components/storefront/storefront-layout'
 import { StorefrontHome } from '@/pages/storefront/storefront-home'
 import { StorefrontCart } from '@/pages/storefront/storefront-cart'
@@ -43,6 +45,8 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/invite/accept/:token" element={<AcceptInvitationPage />} />
 
         {/* Public marketplace storefront */}

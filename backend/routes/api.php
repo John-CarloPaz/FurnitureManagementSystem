@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\ManufacturingController;
 use App\Http\Controllers\Api\ModelVersionController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\PhAddressController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ProfileController;
@@ -47,6 +48,8 @@ Route::prefix('v1')->group(function () {
 
     Route::post('/auth/login', [AuthController::class, 'login']);
     Route::post('/auth/register', [RegisterController::class, 'register']); // public customer sign-up
+    Route::post('/auth/forgot-password', [PasswordResetController::class, 'forgot']);
+    Route::post('/auth/reset-password', [PasswordResetController::class, 'reset']);
 
     // Public marketplace — browse published products without an account.
     Route::get('/shop/products', [StorefrontController::class, 'products']);

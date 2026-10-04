@@ -53,6 +53,23 @@ export async function updateProfile(payload: ProfileInput): Promise<User> {
   return data.data
 }
 
+export async function forgotPassword(email: string): Promise<string> {
+  const { data } = await api.post('/auth/forgot-password', { email })
+  return data.data.message
+}
+
+export interface ResetPasswordInput {
+  token: string
+  email: string
+  password: string
+  password_confirmation: string
+}
+
+export async function resetPassword(payload: ResetPasswordInput): Promise<string> {
+  const { data } = await api.post('/auth/reset-password', payload)
+  return data.data.message
+}
+
 export async function logout(): Promise<void> {
   try {
     await api.post('/auth/logout')

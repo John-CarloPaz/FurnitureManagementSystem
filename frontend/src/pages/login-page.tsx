@@ -47,6 +47,14 @@ export function LoginPage() {
         </div>
 
         <div className="space-y-4 rounded-[var(--radius-lg)] border border-border bg-surface p-6 shadow-[var(--shadow-md)]">
+          {params.get('reset') && !error && (
+            <div
+              className="rounded-[var(--radius-sm)] px-3 py-2 text-sm"
+              style={{ backgroundColor: 'color-mix(in srgb, var(--status-success) 12%, transparent)', color: 'var(--status-success)' }}
+            >
+              Your password was reset. Sign in with your new password.
+            </div>
+          )}
           {error && (
             <div
               className="rounded-[var(--radius-sm)] px-3 py-2 text-sm"
@@ -66,7 +74,10 @@ export function LoginPage() {
             />
           </div>
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-fg" htmlFor="password">Password</label>
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-fg" htmlFor="password">Password</label>
+              <Link to="/forgot-password" className="text-xs text-walnut hover:underline">Forgot password?</Link>
+            </div>
             <input
               id="password"
               type="password"
