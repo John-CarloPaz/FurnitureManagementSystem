@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Domain\Notifications\Actions\SendIssueStatusEmail;
 use App\Domain\Orders\Enums\OrderState;
 use App\Domain\Orders\Models\IssueReport;
 use App\Domain\Orders\Models\Order;
@@ -53,7 +54,7 @@ class IssueController extends Controller
     }
 
     /** Staff (issues.manage) move an issue along and record how it was resolved. */
-    public function update(Request $request, IssueReport $issueReport): IssueReportResource
+    public function update(Request $request, IssueReport $issueReport, SendIssueStatusEmail $mailer): IssueReportResource
     {
         abort_unless($request->user()?->can('issues.manage'), 403);
 
@@ -62,12 +63,20 @@ class IssueController extends Controller
             'resolution_note' => ['nullable', 'string', 'max:1000'],
         ]);
 
+        $previousStatus = $issueReport->status;
+
         $issueReport->update([
             'status' => $validated['status'],
             'resolution_note' => $validated['resolution_note'] ?? $issueReport->resolution_note,
             'handled_by' => $request->user()->id,
         ]);
 
-        return new IssueReportResource($issueReport->load(['order', 'reporter']));
+        $issueReport->load(['order', 'reporter']);
+
+        if ($validated['status'] !== $previousStatus) {
+            $mailer->execute($issueReport);
+        }
+
+        return new IssueReportResource($issueReport);
     }
 }

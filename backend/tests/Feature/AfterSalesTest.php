@@ -7,6 +7,7 @@ use App\Domain\Orders\Models\Order;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -94,6 +95,46 @@ class AfterSalesTest extends TestCase
 
         $this->patchJson("/api/v1/issues/{$id}", ['status' => 'RESOLVED', 'resolution_note' => 'Replacement sent'])
             ->assertOk()->assertJsonPath('data.status', 'RESOLVED');
+    }
+
+    public function test_return_status_change_emails_the_customer(): void
+    {
+        config(['services.brevo.key' => 'test-key']);
+        Http::fake(['api.brevo.com/*' => Http::response([], 201)]);
+
+        $customer = $this->customer();
+        $order = $this->order($customer, OrderState::DELIVERED);
+        Sanctum::actingAs($customer);
+        $id = $this->postJson("/api/v1/orders/{$order->id}/returns", ['reason' => 'defective'])->json('data.id');
+
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+        Sanctum::actingAs($admin);
+        $this->patchJson("/api/v1/returns/{$id}", ['status' => 'REFUNDED'])->assertOk();
+
+        Http::assertSent(fn ($r) => str_contains($r->url(), 'api.brevo.com')
+            && $r['to'][0]['email'] === $customer->email
+            && str_contains((string) $r['subject'], 'Refund processed'));
+    }
+
+    public function test_issue_status_change_emails_the_customer(): void
+    {
+        config(['services.brevo.key' => 'test-key']);
+        Http::fake(['api.brevo.com/*' => Http::response([], 201)]);
+
+        $customer = $this->customer();
+        $order = $this->order($customer, OrderState::DELIVERED);
+        Sanctum::actingAs($customer);
+        $id = $this->postJson("/api/v1/orders/{$order->id}/issues", ['category' => 'damaged_item', 'description' => 'Scratched'])->json('data.id');
+
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+        Sanctum::actingAs($admin);
+        $this->patchJson("/api/v1/issues/{$id}", ['status' => 'RESOLVED'])->assertOk();
+
+        Http::assertSent(fn ($r) => str_contains($r->url(), 'api.brevo.com')
+            && $r['to'][0]['email'] === $customer->email
+            && str_contains((string) $r['subject'], 'Issue resolved'));
     }
 
     public function test_a_customer_cannot_open_a_return_on_someone_elses_order(): void

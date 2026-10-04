@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Domain\Notifications\Actions\SendReturnStatusEmail;
 use App\Domain\Orders\Enums\OrderState;
 use App\Domain\Orders\Models\Order;
 use App\Domain\Orders\Models\ReturnRequest;
@@ -56,7 +57,7 @@ class ReturnController extends Controller
     }
 
     /** Staff (returns.manage) approve / reject / refund a request. */
-    public function update(Request $request, ReturnRequest $returnRequest): ReturnRequestResource
+    public function update(Request $request, ReturnRequest $returnRequest, SendReturnStatusEmail $mailer): ReturnRequestResource
     {
         abort_unless($request->user()?->can('returns.manage'), 403);
 
@@ -65,6 +66,8 @@ class ReturnController extends Controller
             'resolution_note' => ['nullable', 'string', 'max:1000'],
             'refund_amount' => ['nullable', 'numeric', 'min:0'],
         ]);
+
+        $previousStatus = $returnRequest->status;
 
         $returnRequest->update([
             'status' => $validated['status'],
@@ -75,6 +78,12 @@ class ReturnController extends Controller
             'handled_by' => $request->user()->id,
         ]);
 
-        return new ReturnRequestResource($returnRequest->load(['order', 'requester']));
+        $returnRequest->load(['order', 'requester']);
+
+        if ($validated['status'] !== $previousStatus) {
+            $mailer->execute($returnRequest);
+        }
+
+        return new ReturnRequestResource($returnRequest);
     }
 }
