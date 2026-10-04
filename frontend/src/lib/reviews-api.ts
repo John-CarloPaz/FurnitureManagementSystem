@@ -21,3 +21,7 @@ export async function submitReview(productId: number, rating: number, comment?: 
 export async function deleteReview(id: number): Promise<void> {
   await api.delete(`/reviews/${id}`)
 }
+
+export async function fetchCanReview(productId: number): Promise<boolean> {
+  return (await api.get(`/shop/products/${productId}/can-review`)).data.data.can_review
+}

@@ -29,6 +29,20 @@ class RbacTest extends TestCase
         $this->getJson('/api/v1/users')->assertOk();
     }
 
+    public function test_user_list_can_be_filtered_by_role(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+        $customer = User::factory()->create();
+        $customer->assignRole('customer');
+        Sanctum::actingAs($admin);
+
+        $emails = collect($this->getJson('/api/v1/users?role=customer')->assertOk()->json('data'))->pluck('email');
+
+        $this->assertTrue($emails->contains($customer->email));
+        $this->assertFalse($emails->contains($admin->email));
+    }
+
     public function test_customer_cannot_list_users(): void
     {
         $customer = User::factory()->create();

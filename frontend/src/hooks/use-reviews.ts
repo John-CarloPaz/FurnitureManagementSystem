@@ -1,8 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { deleteReview, fetchReviews, submitReview } from '@/lib/reviews-api'
+import { deleteReview, fetchCanReview, fetchReviews, submitReview } from '@/lib/reviews-api'
 
 export function useReviews(productId: number) {
   return useQuery({ queryKey: ['reviews', productId], queryFn: () => fetchReviews(productId), enabled: !!productId })
+}
+
+export function useCanReview(productId: number, enabled: boolean) {
+  return useQuery({
+    queryKey: ['can-review', productId],
+    queryFn: () => fetchCanReview(productId),
+    enabled: enabled && !!productId,
+  })
 }
 
 export function useSubmitReview(productId: number) {

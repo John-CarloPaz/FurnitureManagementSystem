@@ -1,8 +1,8 @@
 import { api } from './api'
 import type { User } from './auth-api'
 
-export async function fetchUsers(): Promise<User[]> {
-  const { data } = await api.get('/users')
+export async function fetchUsers(role?: string): Promise<User[]> {
+  const { data } = await api.get('/users', { params: role ? { role } : undefined })
   return data.data
 }
 

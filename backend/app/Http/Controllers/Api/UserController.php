@@ -15,12 +15,16 @@ use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
-    /** Paginated user list (permission: users.view). */
-    public function index(): AnonymousResourceCollection
+    /** Paginated user list (permission: users.view), optionally filtered by ?role. */
+    public function index(Request $request): AnonymousResourceCollection
     {
-        return UserResource::collection(
-            User::query()->latest()->paginate(20),
-        );
+        $query = User::query()->latest();
+
+        if ($role = $request->query('role')) {
+            $query->whereHas('roles', fn ($q) => $q->where('name', $role));
+        }
+
+        return UserResource::collection($query->paginate(20));
     }
 
     /** Create a user and assign a role (permission: users.create). */

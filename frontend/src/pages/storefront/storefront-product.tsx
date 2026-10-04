@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card'
 import { ModelViewer } from '@/components/orders/model-viewer'
 import { StarRating } from '@/components/storefront/star-rating'
 import { useShopProduct } from '@/hooks/use-storefront'
-import { useReviews, useSubmitReview, useDeleteReview } from '@/hooks/use-reviews'
+import { useReviews, useSubmitReview, useDeleteReview, useCanReview } from '@/hooks/use-reviews'
 import { useAuth } from '@/hooks/use-auth'
 import { useCart } from '@/stores/cart'
 import { fileUrl } from '@/lib/api'
@@ -19,6 +19,7 @@ export function StorefrontProduct() {
   const { data: product, isLoading } = useShopProduct(productId)
   const { isAuthenticated } = useAuth()
   const { data: reviews = [] } = useReviews(productId)
+  const { data: canReview } = useCanReview(productId, isAuthenticated)
   const submitReview = useSubmitReview(productId)
   const removeReview = useDeleteReview(productId)
   const add = useCart((s) => s.add)
@@ -106,7 +107,7 @@ export function StorefrontProduct() {
       <section className="space-y-4 border-t border-border pt-8">
         <h2 className="font-display text-2xl text-fg">Reviews</h2>
 
-        {isAuthenticated && (
+        {isAuthenticated && canReview && (
           <Card className="space-y-3">
             <p className="text-sm font-medium text-fg">{myReview ? 'Update your review' : 'Write a review'}</p>
             <StarRating value={rating || myReview?.rating || 0} size={22} onChange={setRating} />

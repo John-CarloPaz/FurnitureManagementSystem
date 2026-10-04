@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { deleteUser, fetchUsers, transferOwnership, updateUser } from '@/lib/users-api'
 
-export function useUsers() {
-  return useQuery({ queryKey: ['users'], queryFn: fetchUsers })
+export function useUsers(role?: string) {
+  return useQuery({ queryKey: ['users', { role: role ?? null }], queryFn: () => fetchUsers(role) })
 }
 
 function useInvalidateUsers() {

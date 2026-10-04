@@ -122,6 +122,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/model-versions/{version}/download', [ModelVersionController::class, 'download']);
 
         // ---- Product reviews (customer, post-delivery) ----
+        Route::get('/shop/products/{product}/can-review', [ReviewController::class, 'eligibility']);
         Route::post('/shop/products/{product}/reviews', [ReviewController::class, 'store']);
         Route::delete('/reviews/{review}', [ReviewController::class, 'destroy']);
 

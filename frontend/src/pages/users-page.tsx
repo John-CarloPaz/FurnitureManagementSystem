@@ -84,7 +84,8 @@ export function UsersPage() {
   const canUpdate = has('users.update')
   const canDelete = has('users.delete')
 
-  const users = useUsers()
+  const [roleFilter, setRoleFilter] = useState('')
+  const users = useUsers(roleFilter || undefined)
   const roles = useRoles()
   const updateUser = useUpdateUser()
   const deleteUser = useDeleteUser()
@@ -134,9 +135,26 @@ export function UsersPage() {
       {has('invitations.viewAny') && <PendingInvitations />}
 
       <Card className="p-0">
-        <div className="border-b border-border px-6 py-4"><CardTitle>Team members</CardTitle></div>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-6 py-4">
+          <CardTitle>Team members</CardTitle>
+          <label className="flex items-center gap-2 text-sm text-muted">
+            Filter by role
+            <select
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+              className="rounded-[var(--radius-sm)] border border-border bg-bg px-2 py-1.5 text-sm text-fg outline-none focus:ring-2 focus:ring-[var(--amber)]"
+            >
+              <option value="">All roles</option>
+              {(roles.data ?? []).map((r) => (
+                <option key={r.id} value={r.name}>{prettyRole(r.name)}</option>
+              ))}
+            </select>
+          </label>
+        </div>
         {users.isLoading ? (
           <p className="p-8 text-center text-muted">Loading users…</p>
+        ) : !users.data?.length ? (
+          <p className="p-8 text-center text-muted">No users{roleFilter ? ` with the ${prettyRole(roleFilter)} role` : ''}.</p>
         ) : (
           <table className="w-full text-sm">
             <thead>

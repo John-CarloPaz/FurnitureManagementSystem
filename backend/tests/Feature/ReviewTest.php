@@ -85,4 +85,19 @@ class ReviewTest extends TestCase
 
         $this->postJson("/api/v1/shop/products/{$product->id}/reviews", ['rating' => 5])->assertForbidden();
     }
+
+    public function test_eligibility_endpoint_reflects_purchase_history(): void
+    {
+        $buyer = $this->customer();
+        $product = $this->product();
+        $this->deliveredOrder($buyer, $product);
+
+        Sanctum::actingAs($buyer);
+        $this->getJson("/api/v1/shop/products/{$product->id}/can-review")
+            ->assertOk()->assertJsonPath('data.can_review', true);
+
+        Sanctum::actingAs($this->customer()); // a different customer with no order
+        $this->getJson("/api/v1/shop/products/{$product->id}/can-review")
+            ->assertOk()->assertJsonPath('data.can_review', false);
+    }
 }
