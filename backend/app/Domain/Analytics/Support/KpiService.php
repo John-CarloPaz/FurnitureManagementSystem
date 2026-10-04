@@ -2,11 +2,13 @@
 
 namespace App\Domain\Analytics\Support;
 
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
  * Computes headline KPIs from live operational data (orders, manufacturing_stages,
- * deliveries). Postgres-specific aggregates (FILTER, EXTRACT EPOCH). All read-only.
+ * deliveries). Time math is done in PHP (not driver-specific SQL) so the same code
+ * runs on SQLite, MySQL and Postgres. All read-only.
  */
 class KpiService
 {
@@ -24,13 +26,18 @@ class KpiService
     /** Average days from placement to delivery over delivered orders. */
     public function avgLeadTimeDays(): ?float
     {
-        $v = DB::table('orders')
+        $orders = DB::table('orders')
             ->whereNotNull('delivered_at')
             ->whereNotNull('placed_at')
-            ->selectRaw('AVG(EXTRACT(EPOCH FROM (delivered_at - placed_at)) / 86400) as d')
-            ->value('d');
+            ->get(['placed_at', 'delivered_at']);
 
-        return $v !== null ? round((float) $v, 1) : null;
+        if ($orders->isEmpty()) {
+            return null;
+        }
+
+        $avgDays = $orders->avg(fn ($o) => (strtotime((string) $o->delivered_at) - strtotime((string) $o->placed_at)) / 86400);
+
+        return round((float) $avgDays, 1);
     }
 
     /** % of delivered orders delivered within the target lead time. */
@@ -38,48 +45,59 @@ class KpiService
     {
         $target = (int) config('analytics.target_lead_days', 14);
 
-        $row = DB::table('orders')
+        $orders = DB::table('orders')
             ->whereNotNull('delivered_at')
             ->whereNotNull('placed_at')
-            ->selectRaw("COUNT(*) as total, COUNT(*) FILTER (WHERE delivered_at <= placed_at + (interval '1 day' * ?)) as on_time", [$target])
-            ->first();
+            ->get(['placed_at', 'delivered_at']);
 
-        $total = (int) ($row->total ?? 0);
+        if ($orders->isEmpty()) {
+            return null;
+        }
 
-        return $total > 0 ? round(((int) $row->on_time / $total) * 100, 1) : null;
+        $onTime = $orders->filter(
+            fn ($o) => strtotime((string) $o->delivered_at) <= strtotime((string) $o->placed_at) + $target * 86400,
+        )->count();
+
+        return round(($onTime / $orders->count()) * 100, 1);
     }
 
     /** % of QC checks that failed. */
     public function defectRate(): float
     {
-        $row = DB::table('manufacturing_stages')
-            ->where('stage', 'qc')
-            ->whereNotNull('qc_passed')
-            ->selectRaw('COUNT(*) as total, COUNT(*) FILTER (WHERE qc_passed = false) as failed')
-            ->first();
+        $base = DB::table('manufacturing_stages')->where('stage', 'qc')->whereNotNull('qc_passed');
+        $total = (clone $base)->count();
 
-        $total = (int) ($row->total ?? 0);
+        if ($total === 0) {
+            return 0.0;
+        }
 
-        return $total > 0 ? round(((int) $row->failed / $total) * 100, 1) : 0.0;
+        $failed = (clone $base)->where('qc_passed', false)->count();
+
+        return round(($failed / $total) * 100, 1);
     }
 
     /** Simplified OTE = performance (expected/actual time) × quality (1 − defect rate). Availability assumed 100%. */
     public function ote(): ?float
     {
-        $row = DB::table('manufacturing_stages')
+        $rows = DB::table('manufacturing_stages')
             ->where('status', 'done')
             ->whereNotNull('started_at')
             ->whereNotNull('ended_at')
             ->where('expected_minutes', '>', 0)
-            ->selectRaw('SUM(expected_minutes) as exp, SUM(EXTRACT(EPOCH FROM (ended_at - started_at)) / 60) as act')
-            ->first();
+            ->get(['expected_minutes', 'started_at', 'ended_at']);
 
-        $act = (float) ($row->act ?? 0);
-        if ($act <= 0) {
+        $expected = 0.0;
+        $actual = 0.0;
+        foreach ($rows as $r) {
+            $expected += (float) $r->expected_minutes;
+            $actual += (strtotime((string) $r->ended_at) - strtotime((string) $r->started_at)) / 60;
+        }
+
+        if ($actual <= 0) {
             return null;
         }
 
-        $performance = min(1.0, (float) $row->exp / $act);
+        $performance = min(1.0, $expected / $actual);
         $quality = 1 - ($this->defectRate() / 100);
 
         return round($performance * $quality * 100, 1);
@@ -92,7 +110,7 @@ class KpiService
             ->selectRaw('status, COUNT(*) as c')
             ->groupBy('status')
             ->get()
-            ->mapWithKeys(fn ($r) => [$r->status => (int) $r->c])
+            ->mapWithKeys(fn ($r) => [(string) $r->status => (int) $r->c])
             ->all();
     }
 
@@ -106,27 +124,32 @@ class KpiService
         $rows = DB::table('manufacturing_stages')
             ->whereNotNull('started_at')
             ->whereNotNull('ended_at')
-            ->selectRaw('stage, COUNT(*) FILTER (WHERE is_delayed) as delayed, ROUND(AVG(EXTRACT(EPOCH FROM (ended_at - started_at)) / 60)::numeric, 1) as avg_min')
-            ->groupBy('stage')
-            ->get();
+            ->get(['stage', 'is_delayed', 'started_at', 'ended_at']);
 
         if ($rows->isEmpty()) {
             return null;
         }
 
-        $breakdown = $rows->map(fn ($r) => [
-            'stage' => $r->stage,
-            'delayed' => (int) $r->delayed,
-            'avg_minutes' => (float) $r->avg_min,
-        ])->values()->all();
+        /** @var Collection<int, array{stage: string, delayed: int, avg_minutes: float}> $breakdown */
+        $breakdown = $rows->groupBy('stage')->map(function (Collection $group, $stage) {
+            $avgMinutes = $group->avg(
+                fn ($r) => (strtotime((string) $r->ended_at) - strtotime((string) $r->started_at)) / 60,
+            );
 
-        $top = $rows->sortByDesc('delayed')->first();
+            return [
+                'stage' => (string) $stage,
+                'delayed' => $group->filter(fn ($r) => (bool) $r->is_delayed)->count(),
+                'avg_minutes' => round((float) $avgMinutes, 1),
+            ];
+        })->values();
+
+        $top = $breakdown->sortByDesc('delayed')->first();
 
         return [
-            'stage' => $top->stage,
-            'delayed_count' => (int) $top->delayed,
-            'avg_minutes' => (float) $top->avg_min,
-            'breakdown' => $breakdown,
+            'stage' => $top['stage'],
+            'delayed_count' => $top['delayed'],
+            'avg_minutes' => $top['avg_minutes'],
+            'breakdown' => $breakdown->all(),
         ];
     }
 
@@ -137,7 +160,7 @@ class KpiService
             ->selectRaw('status, COUNT(*) as c')
             ->groupBy('status')
             ->get()
-            ->mapWithKeys(fn ($r) => [$r->status => (int) $r->c])
+            ->mapWithKeys(fn ($r) => [(string) $r->status => (int) $r->c])
             ->all();
     }
 }

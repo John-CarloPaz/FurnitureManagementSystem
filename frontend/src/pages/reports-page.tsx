@@ -26,7 +26,7 @@ function ChartCard({ heading, children, empty }: { heading: string; children: Re
 
 export function ReportsPage() {
   const { scope, query } = useKpi()
-  const { data, isLoading } = query
+  const { data, isLoading, isError, refetch } = query
 
   const h = data?.headline
   const kpiCards = [
@@ -57,6 +57,11 @@ export function ReportsPage() {
 
       {scope === 'none' ? (
         <Card className="text-center text-muted">You don't have access to reports.</Card>
+      ) : isError ? (
+        <Card className="space-y-3 text-center">
+          <p className="text-[var(--status-danger)]">Couldn't load the reports data.</p>
+          <button onClick={() => refetch()} className="mx-auto rounded-full border border-border px-4 py-1.5 text-sm text-fg hover:bg-surface-2">Retry</button>
+        </Card>
       ) : isLoading || !data ? (
         <p className="p-8 text-center text-muted">Loading reports…</p>
       ) : (

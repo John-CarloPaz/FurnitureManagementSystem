@@ -131,7 +131,7 @@ function ProductionDss() {
 
 export function AnalyticsPage() {
   const { scope, query } = useKpi()
-  const { data, isLoading } = query
+  const { data, isLoading, isError, refetch } = query
   const { has } = useAuth()
   const showDss = has('manufacturing.schedule')
 
@@ -144,6 +144,11 @@ export function AnalyticsPage() {
 
       {scope === 'none' ? (
         <Card className="text-center text-muted">You don't have access to analytics.</Card>
+      ) : isError ? (
+        <Card className="space-y-3 text-center">
+          <p className="text-[var(--status-danger)]">Couldn't load the KPI data.</p>
+          <button onClick={() => refetch()} className="mx-auto rounded-full border border-border px-4 py-1.5 text-sm text-fg hover:bg-surface-2">Retry</button>
+        </Card>
       ) : isLoading || !data ? (
         <p className="p-8 text-center text-muted">Loading KPIs…</p>
       ) : (
