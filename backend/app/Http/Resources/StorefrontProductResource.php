@@ -37,6 +37,7 @@ class StorefrontProductResource extends JsonResource
                 ? round((float) $this->getAttribute('reviews_avg_rating'), 1)
                 : null,
             'rating_count' => (int) $this->getAttribute('reviews_count'),
+            'variations' => ProductVariationResource::collection($this->whenLoaded('variations')),
         ];
     }
 }

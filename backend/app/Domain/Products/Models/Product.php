@@ -85,6 +85,12 @@ class Product extends Model
         return $this->hasMany(ProductReview::class);
     }
 
+    /** @return HasMany<ProductVariation, $this> */
+    public function variations(): HasMany
+    {
+        return $this->hasMany(ProductVariation::class)->orderBy('sort_order');
+    }
+
     /** @return HasOne<Model3D, $this> */
     public function model(): HasOne
     {

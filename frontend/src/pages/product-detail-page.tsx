@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ProductModelPanel } from '@/components/catalog/product-model-panel'
 import { ProductForm } from '@/components/catalog/product-form'
+import { ProductVariationsEditor } from '@/components/catalog/product-variations-editor'
 import { useChangeProductStatus, useProduct, useUpdateProduct } from '@/hooks/use-products'
 import { useAuth } from '@/hooks/use-auth'
 import { useCart } from '@/stores/cart'
@@ -116,6 +117,12 @@ export function ProductDetailPage() {
               </>
             )}
           </Card>
+
+          {canManage && (
+            <Card>
+              <ProductVariationsEditor productId={productId} initial={product.variations ?? []} />
+            </Card>
+          )}
 
           {(canManage || canPublish) && (
             <Card className="space-y-2">

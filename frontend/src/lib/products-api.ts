@@ -12,6 +12,17 @@ export interface ProductImage {
   is_primary: boolean
 }
 
+export interface ProductVariation {
+  id: number
+  name: string
+  color_hex: string
+}
+
+export interface VariationInput {
+  name: string
+  color_hex: string
+}
+
 export type GenerationStatus = 'pending' | 'processing' | 'succeeded' | 'failed'
 
 export interface ProductModelGeneration {
@@ -44,6 +55,7 @@ export interface Product {
   published_at: string | null
   model?: ProductModel | null
   images?: ProductImage[]
+  variations?: ProductVariation[]
   model_generation?: ProductModelGeneration | null
   created_at: string
   updated_at: string
@@ -157,4 +169,9 @@ export async function uploadProductModel(productId: number, file: File, changeLo
 export async function getModelDownloadUrl(versionId: number): Promise<string> {
   const { data } = await api.get(`/model-versions/${versionId}/download`)
   return fileUrl(data.data.url)
+}
+
+export async function syncProductVariations(productId: number, variations: VariationInput[]): Promise<ProductVariation[]> {
+  const { data } = await api.put(`/products/${productId}/variations`, { variations })
+  return data.data
 }

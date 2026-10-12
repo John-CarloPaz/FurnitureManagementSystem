@@ -7,9 +7,11 @@ import {
   fetchProductVersions,
   fetchProducts,
   generateProductModel,
+  syncProductVariations,
   updateProduct,
   uploadProductModel,
   type ProductInput,
+  type VariationInput,
 } from '@/lib/products-api'
 
 export function useCatalogOptions() {
@@ -75,6 +77,14 @@ export function useChangeProductStatus(id: number) {
       qc.invalidateQueries({ queryKey: ['products', id] })
       qc.invalidateQueries({ queryKey: ['products'] })
     },
+  })
+}
+
+export function useSyncVariations(productId: number) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (variations: VariationInput[]) => syncProductVariations(productId, variations),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['products', productId] }),
   })
 }
 

@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\OwnerController;
 use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\PhAddressController;
 use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\ProductVariationController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\RegisterController;
 use App\Http\Controllers\Api\ReturnController;
@@ -117,6 +118,7 @@ Route::prefix('v1')->group(function () {
         Route::patch('/products/{product}', [ProductController::class, 'update']);
         Route::delete('/products/{product}', [ProductController::class, 'destroy']);
         Route::post('/products/{product}/generate-model', [ProductController::class, 'generateModel']);
+        Route::put('/products/{product}/variations', [ProductVariationController::class, 'sync']);
         Route::post('/products/{product}/publish', [ProductController::class, 'publish']);
         Route::post('/products/{product}/unpublish', [ProductController::class, 'unpublish']);
         Route::post('/products/{product}/archive', [ProductController::class, 'archive']);

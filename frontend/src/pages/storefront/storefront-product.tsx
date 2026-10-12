@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, ShoppingBag, Check, Trash2 } from 'lucide-react'
+import { ArrowLeft, ShoppingBag, Check, Trash2, Boxes, Image as ImageIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { ModelViewer } from '@/components/orders/model-viewer'
@@ -24,6 +24,8 @@ export function StorefrontProduct() {
   const removeReview = useDeleteReview(productId)
   const add = useCart((s) => s.add)
   const [added, setAdded] = useState(false)
+  const [activeColor, setActiveColor] = useState<string | undefined>(undefined)
+  const [view, setView] = useState<'3d' | 'photo'>('3d')
 
   const myReview = reviews.find((r) => r.is_mine)
   const [rating, setRating] = useState(0)
@@ -66,13 +68,58 @@ export function StorefrontProduct() {
       </Link>
 
       <div className="grid gap-8 lg:grid-cols-2">
-        <div>
-          {product.model_url ? (
-            <ModelViewer url={fileUrl(product.model_url)} format={product.model_format ?? 'glb'} />
+        <div className="space-y-4">
+          {/* 3D / Photo switch — only when both exist */}
+          {product.model_url && product.image_url && (
+            <div className="inline-flex rounded-full border border-border bg-surface p-1 text-sm">
+              <button
+                onClick={() => setView('3d')}
+                className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 transition-colors ${view === '3d' ? 'bg-walnut text-walnut-foreground' : 'text-muted hover:text-fg'}`}
+              >
+                <Boxes size={14} /> 3D
+              </button>
+              <button
+                onClick={() => setView('photo')}
+                className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 transition-colors ${view === 'photo' ? 'bg-walnut text-walnut-foreground' : 'text-muted hover:text-fg'}`}
+              >
+                <ImageIcon size={14} /> Photo
+              </button>
+            </div>
+          )}
+
+          {product.model_url && view === '3d' ? (
+            <ModelViewer url={fileUrl(product.model_url)} format={product.model_format ?? 'glb'} color={activeColor} />
           ) : product.image_url ? (
-            <img src={product.image_url} alt={product.name} className="aspect-square w-full rounded-[var(--radius-md)] object-cover" />
+            <img src={product.image_url} alt={product.name} className="aspect-square w-full rounded-[var(--radius-lg)] border border-black/5 object-cover" />
           ) : (
-            <div className="flex aspect-square items-center justify-center rounded-[var(--radius-md)] bg-surface-2 text-muted">No preview</div>
+            <div className="flex h-[460px] items-center justify-center rounded-[var(--radius-lg)] bg-surface-2 text-muted">No preview</div>
+          )}
+
+          {/* Color variations — tint the 3D model live */}
+          {product.variations && product.variations.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted">
+                Finish{activeColor ? <span className="ml-2 normal-case text-fg">{product.variations.find((v) => v.color_hex === activeColor)?.name}</span> : ''}
+              </p>
+              <div className="flex flex-wrap items-center gap-2.5">
+                <button
+                  onClick={() => setActiveColor(undefined)}
+                  aria-label="Original finish"
+                  title="Original"
+                  className={`h-9 w-9 rounded-full border bg-gradient-to-br from-white to-surface-2 transition-transform hover:scale-110 ${!activeColor ? 'border-walnut ring-2 ring-[var(--amber)] ring-offset-2 ring-offset-bg' : 'border-border'}`}
+                />
+                {product.variations.map((v) => (
+                  <button
+                    key={v.id}
+                    onClick={() => { setActiveColor(v.color_hex); setView('3d') }}
+                    aria-label={v.name}
+                    title={v.name}
+                    className={`h-9 w-9 rounded-full border transition-transform hover:scale-110 ${activeColor === v.color_hex ? 'border-walnut ring-2 ring-[var(--amber)] ring-offset-2 ring-offset-bg' : 'border-black/10'}`}
+                    style={{ backgroundColor: v.color_hex }}
+                  />
+                ))}
+              </div>
+            </div>
           )}
         </div>
 

@@ -51,6 +51,7 @@ class ProductResource extends JsonResource
                 'progress' => $this->latestModelGeneration->progress,
                 'error' => $this->latestModelGeneration->error,
             ] : null),
+            'variations' => ProductVariationResource::collection($this->whenLoaded('variations')),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
