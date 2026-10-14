@@ -40,6 +40,11 @@ export function StorefrontOrderDetail() {
         <div>
           <p className="font-mono text-xs text-muted">{order.order_number}</p>
           <h1 className="font-display text-3xl text-fg">{peso(order.total)}</h1>
+          {order.delivered_at ? (
+            <p className="mt-0.5 text-sm text-muted">Delivered on <span className="text-fg">{new Date(order.delivered_at).toLocaleDateString()}</span></p>
+          ) : order.expected_delivery_at ? (
+            <p className="mt-0.5 text-sm text-muted">Estimated delivery <span className="text-fg">{new Date(order.expected_delivery_at).toLocaleDateString()}</span></p>
+          ) : null}
         </div>
         <StatusPill state={order.status} />
       </div>

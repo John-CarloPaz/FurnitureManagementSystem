@@ -245,6 +245,11 @@ export function OrderDetailPage() {
           <p className="font-mono text-xs text-muted">{order.order_number}</p>
           <h1 className="font-display text-3xl text-fg">{peso(order.total)}</h1>
           <p className="text-sm text-muted">{order.customer?.name}</p>
+          {order.delivered_at ? (
+            <p className="text-sm text-muted">Delivered on <span className="text-fg">{new Date(order.delivered_at).toLocaleDateString()}</span></p>
+          ) : order.expected_delivery_at ? (
+            <p className="text-sm text-muted">Expected delivery <span className="text-fg">{new Date(order.expected_delivery_at).toLocaleDateString()}</span></p>
+          ) : null}
         </div>
         <div className="flex items-center gap-2">
           {order.is_delayed && order.status !== 'DELIVERED' && order.status !== 'COMPLETED' && (
