@@ -102,7 +102,7 @@ class ProductController extends Controller
     {
         $this->authorize('view', $product);
 
-        return new ProductResource($product->load(['images', 'model', 'latestModelGeneration', 'variations']));
+        return new ProductResource($product->load(['images', 'model', 'latestModelGeneration', 'variations.latestModelGeneration']));
     }
 
     public function update(UpdateProductRequest $request, Product $product): ProductResource

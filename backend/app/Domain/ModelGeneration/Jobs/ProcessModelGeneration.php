@@ -6,6 +6,7 @@ use App\Domain\ModelGeneration\Contracts\ModelGenerator;
 use App\Domain\ModelGeneration\Enums\GenerationStatus;
 use App\Domain\ModelGeneration\Models\ModelGeneration;
 use App\Domain\Models3D\Actions\UploadModelVersionAction;
+use App\Domain\Products\Models\ProductVariation;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -89,6 +90,15 @@ class ProcessModelGeneration implements ShouldQueue
             return;
         }
 
+        // A variation-scoped generation becomes that variation's own model; otherwise it's
+        // the product's next (current) model version.
+        $generation->variation_id
+            ? $this->finalizeForVariation($generation, $body)
+            : $this->finalizeForProduct($generation, $body, $versions);
+    }
+
+    private function finalizeForProduct(ModelGeneration $generation, string $body, UploadModelVersionAction $versions): void
+    {
         // Persist to the app's default disk. On the s3 disk `throw` is off, so a failed
         // upload returns false silently — verify it landed, else fail loudly (no phantom
         // version with no file behind it, which would hang the viewer forever).
@@ -113,6 +123,30 @@ class ProcessModelGeneration implements ShouldQueue
             'progress' => 100,
             'model_version_id' => $version->id,
         ]);
+    }
+
+    private function finalizeForVariation(ModelGeneration $generation, string $body): void
+    {
+        $variation = ProductVariation::find($generation->variation_id);
+        if ($variation === null) {
+            $this->fail($generation, 'The colour variation no longer exists.');
+
+            return;
+        }
+
+        $path = "models/variations/{$variation->id}/generated-{$generation->id}.glb";
+        if (! Storage::put($path, $body) || ! Storage::exists($path)) {
+            $this->fail($generation, 'The model was generated but could not be saved. Check the app\'s file storage ('.(string) config('filesystems.default').') configuration.');
+
+            return;
+        }
+
+        if ($variation->model_path && $variation->model_path !== $path) {
+            Storage::delete($variation->model_path);
+        }
+        $variation->update(['model_path' => $path, 'model_format' => 'glb']);
+
+        $generation->update(['status' => GenerationStatus::SUCCEEDED, 'progress' => 100]);
     }
 
     private function requeue(): void

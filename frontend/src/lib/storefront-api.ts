@@ -17,7 +17,15 @@ export interface ShopProduct {
   has_model: boolean
   rating_avg: number | null
   rating_count: number
-  variations?: { id: number; name: string; color_hex: string }[]
+  variations?: {
+    id: number
+    name: string
+    color_hex: string
+    has_model: boolean
+    model_url: string | null
+    model_format: string | null
+    image_url: string | null
+  }[]
   model_url?: string | null
   model_format?: string | null
 }

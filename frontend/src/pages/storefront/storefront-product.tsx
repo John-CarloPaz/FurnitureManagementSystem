@@ -24,7 +24,7 @@ export function StorefrontProduct() {
   const removeReview = useDeleteReview(productId)
   const add = useCart((s) => s.add)
   const [added, setAdded] = useState(false)
-  const [activeColor, setActiveColor] = useState<string | undefined>(undefined)
+  const [activeVariationId, setActiveVariationId] = useState<number | null>(null)
   const [view, setView] = useState<'3d' | 'photo'>('3d')
 
   const myReview = reviews.find((r) => r.is_mine)
@@ -61,6 +61,14 @@ export function StorefrontProduct() {
     ['Lead time', product.lead_time_days ? `${product.lead_time_days} days` : null],
   ]
 
+  // The selected variation drives the display: its own 3D model + photo when present,
+  // otherwise fall back to the base model (tinted with the variation's color) and base photo.
+  const activeVar = product.variations?.find((v) => v.id === activeVariationId) ?? null
+  const modelUrl = activeVar?.model_url ?? product.model_url ?? null
+  const modelFormat = activeVar?.model_format ?? product.model_format ?? 'glb'
+  const tint = activeVar && !activeVar.model_url ? activeVar.color_hex : undefined
+  const photoUrl = activeVar?.image_url ?? product.image_url ?? null
+
   return (
     <div className="space-y-6">
       <Link to="/shop" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-fg">
@@ -70,7 +78,7 @@ export function StorefrontProduct() {
       <div className="grid gap-8 lg:grid-cols-2">
         <div className="space-y-4">
           {/* 3D / Photo switch — only when both exist */}
-          {product.model_url && product.image_url && (
+          {modelUrl && photoUrl && (
             <div className="inline-flex rounded-full border border-border bg-surface p-1 text-sm">
               <button
                 onClick={() => setView('3d')}
@@ -87,34 +95,34 @@ export function StorefrontProduct() {
             </div>
           )}
 
-          {product.model_url && view === '3d' ? (
-            <ModelViewer url={fileUrl(product.model_url)} format={product.model_format ?? 'glb'} color={activeColor} />
-          ) : product.image_url ? (
-            <img src={product.image_url} alt={product.name} className="aspect-square w-full rounded-[var(--radius-lg)] border border-black/5 object-cover" />
+          {modelUrl && view === '3d' ? (
+            <ModelViewer key={modelUrl} url={fileUrl(modelUrl)} format={modelFormat} color={tint} />
+          ) : photoUrl ? (
+            <img src={photoUrl} alt={product.name} className="aspect-square w-full rounded-[var(--radius-lg)] border border-black/5 object-cover" />
           ) : (
             <div className="flex h-[460px] items-center justify-center rounded-[var(--radius-lg)] bg-surface-2 text-muted">No preview</div>
           )}
 
-          {/* Color variations — tint the 3D model live */}
+          {/* Color variations — each swaps the 3D model + photo (or tints the base) */}
           {product.variations && product.variations.length > 0 && (
             <div className="space-y-2">
               <p className="text-xs font-medium uppercase tracking-wide text-muted">
-                Finish{activeColor ? <span className="ml-2 normal-case text-fg">{product.variations.find((v) => v.color_hex === activeColor)?.name}</span> : ''}
+                Finish{activeVar ? <span className="ml-2 normal-case text-fg">{activeVar.name}</span> : ''}
               </p>
               <div className="flex flex-wrap items-center gap-2.5">
                 <button
-                  onClick={() => setActiveColor(undefined)}
+                  onClick={() => setActiveVariationId(null)}
                   aria-label="Original finish"
                   title="Original"
-                  className={`h-9 w-9 rounded-full border bg-gradient-to-br from-white to-surface-2 transition-transform hover:scale-110 ${!activeColor ? 'border-walnut ring-2 ring-[var(--amber)] ring-offset-2 ring-offset-bg' : 'border-border'}`}
+                  className={`h-9 w-9 rounded-full border bg-gradient-to-br from-white to-surface-2 transition-transform hover:scale-110 ${activeVariationId === null ? 'border-walnut ring-2 ring-[var(--amber)] ring-offset-2 ring-offset-bg' : 'border-border'}`}
                 />
                 {product.variations.map((v) => (
                   <button
                     key={v.id}
-                    onClick={() => { setActiveColor(v.color_hex); setView('3d') }}
+                    onClick={() => { setActiveVariationId(v.id); if (v.model_url) setView('3d') }}
                     aria-label={v.name}
                     title={v.name}
-                    className={`h-9 w-9 rounded-full border transition-transform hover:scale-110 ${activeColor === v.color_hex ? 'border-walnut ring-2 ring-[var(--amber)] ring-offset-2 ring-offset-bg' : 'border-black/10'}`}
+                    className={`h-9 w-9 rounded-full border transition-transform hover:scale-110 ${activeVariationId === v.id ? 'border-walnut ring-2 ring-[var(--amber)] ring-offset-2 ring-offset-bg' : 'border-black/10'}`}
                     style={{ backgroundColor: v.color_hex }}
                   />
                 ))}

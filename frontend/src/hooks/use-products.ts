@@ -7,9 +7,11 @@ import {
   fetchProductVersions,
   fetchProducts,
   generateProductModel,
+  generateVariationModel,
   syncProductVariations,
   updateProduct,
   uploadProductModel,
+  uploadVariationModel,
   type ProductInput,
   type VariationInput,
 } from '@/lib/products-api'
@@ -34,10 +36,12 @@ export function useProduct(id: number) {
     queryKey: ['products', id],
     queryFn: () => fetchProduct(id),
     enabled: !!id,
-    // Poll while a 3D model is being generated so the viewer appears when it's ready.
+    // Poll while any 3D model (base or a variation) is generating so results appear when ready.
     refetchInterval: (query) => {
-      const status = query.state.data?.model_generation?.status
-      return status === 'pending' || status === 'processing' ? 4000 : false
+      const busy = (s?: string) => s === 'pending' || s === 'processing'
+      const d = query.state.data
+      const anyBusy = busy(d?.model_generation?.status) || (d?.variations ?? []).some((v) => busy(v.generation?.status))
+      return anyBusy ? 4000 : false
     },
   })
 }
@@ -84,6 +88,22 @@ export function useSyncVariations(productId: number) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (variations: VariationInput[]) => syncProductVariations(productId, variations),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['products', productId] }),
+  })
+}
+
+export function useUploadVariationModel(productId: number) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (vars: { variationId: number; file: File }) => uploadVariationModel(productId, vars.variationId, vars.file),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['products', productId] }),
+  })
+}
+
+export function useGenerateVariationModel(productId: number) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (vars: { variationId: number; image: File }) => generateVariationModel(productId, vars.variationId, vars.image),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['products', productId] }),
   })
 }

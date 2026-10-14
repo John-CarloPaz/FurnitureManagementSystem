@@ -14,6 +14,7 @@ use Illuminate\Support\Carbon;
  *
  * @property int $id
  * @property int $product_id
+ * @property int|null $variation_id
  * @property string $image_path
  * @property string $provider
  * @property string|null $provider_task_id
@@ -28,7 +29,7 @@ use Illuminate\Support\Carbon;
 class ModelGeneration extends Model
 {
     protected $fillable = [
-        'product_id', 'image_path', 'provider', 'provider_task_id',
+        'product_id', 'variation_id', 'image_path', 'provider', 'provider_task_id',
         'status', 'progress', 'error', 'model_version_id', 'requested_by',
     ];
 

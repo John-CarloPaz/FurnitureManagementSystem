@@ -16,9 +16,15 @@ export interface ProductVariation {
   id: number
   name: string
   color_hex: string
+  has_model: boolean
+  model_format: string | null
+  model_url: string | null
+  image_url: string | null
+  generation?: { status: GenerationStatus; progress: number; error: string | null } | null
 }
 
 export interface VariationInput {
+  id?: number
   name: string
   color_hex: string
 }
@@ -173,5 +179,19 @@ export async function getModelDownloadUrl(versionId: number): Promise<string> {
 
 export async function syncProductVariations(productId: number, variations: VariationInput[]): Promise<ProductVariation[]> {
   const { data } = await api.put(`/products/${productId}/variations`, { variations })
+  return data.data
+}
+
+export async function uploadVariationModel(productId: number, variationId: number, file: File): Promise<ProductVariation> {
+  const form = new FormData()
+  form.append('file', file)
+  const { data } = await api.post(`/products/${productId}/variations/${variationId}/model`, form)
+  return data.data
+}
+
+export async function generateVariationModel(productId: number, variationId: number, image: File): Promise<ProductVariation> {
+  const form = new FormData()
+  form.append('image', image)
+  const { data } = await api.post(`/products/${productId}/variations/${variationId}/generate`, form)
   return data.data
 }

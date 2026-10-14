@@ -25,6 +25,7 @@ use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\StorefrontController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\VariationModelController;
 use App\Http\Controllers\Api\VoucherController;
 use App\Http\Controllers\Api\WorkOrderController;
 use Illuminate\Support\Facades\DB;
@@ -61,6 +62,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/shop/products/{product}', [StorefrontController::class, 'product']);
     Route::get('/shop/products/{product}/reviews', [ReviewController::class, 'index']);
     Route::get('/shop/product-images/{image}/file', [StorefrontController::class, 'image']);
+    Route::get('/shop/variations/{variation}/image', [VariationModelController::class, 'image']);
 
     // Philippine address reference data (PSGC) — cascading Province → City → Barangay.
     Route::get('/ph/provinces', [PhAddressController::class, 'provinces']);
@@ -119,6 +121,8 @@ Route::prefix('v1')->group(function () {
         Route::delete('/products/{product}', [ProductController::class, 'destroy']);
         Route::post('/products/{product}/generate-model', [ProductController::class, 'generateModel']);
         Route::put('/products/{product}/variations', [ProductVariationController::class, 'sync']);
+        Route::post('/products/{product}/variations/{variation}/model', [VariationModelController::class, 'uploadModel']);
+        Route::post('/products/{product}/variations/{variation}/generate', [VariationModelController::class, 'generate']);
         Route::post('/products/{product}/publish', [ProductController::class, 'publish']);
         Route::post('/products/{product}/unpublish', [ProductController::class, 'unpublish']);
         Route::post('/products/{product}/archive', [ProductController::class, 'archive']);
@@ -213,5 +217,8 @@ Route::prefix('v1')->group(function () {
     // Signed, session-less 3D file stream (temporary URL from /download).
     Route::get('/model-versions/{version}/file', [ModelVersionController::class, 'file'])
         ->name('model-versions.file')
+        ->middleware('signed:relative');
+    Route::get('/variations/{variation}/model/file', [VariationModelController::class, 'file'])
+        ->name('variations.file')
         ->middleware('signed:relative');
 });
