@@ -3,12 +3,22 @@ import {
   assignDelivery,
   dispatchDelivery,
   fetchDeliveries,
+  fetchDeliveryRecommendation,
   fetchDrivers,
   fetchUnassignedOrders,
   logLocation,
   reassignDriver,
   recordProof,
 } from '@/lib/delivery-api'
+
+export function useDeliveryRecommendation(orderId: number, enabled: boolean) {
+  return useQuery({
+    queryKey: ['delivery-recommendation', orderId],
+    queryFn: () => fetchDeliveryRecommendation(orderId),
+    enabled: enabled && !!orderId,
+    staleTime: 60_000,
+  })
+}
 
 export function useDeliveries() {
   return useQuery({ queryKey: ['deliveries'], queryFn: fetchDeliveries, refetchInterval: 15_000 })

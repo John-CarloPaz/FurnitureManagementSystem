@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Domain\Dss\Contracts\RouteOptimizer;
 use App\Domain\Dss\Contracts\SchedulingStrategy;
+use App\Domain\Dss\Support\DeliveryRecommendation;
 use App\Domain\Dss\Support\ProductionJob;
 use App\Domain\Dss\Support\RouteStop;
 use App\Domain\Dss\Support\WorkflowAnalyzer;
@@ -12,6 +13,7 @@ use App\Domain\Orders\Models\Order;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Dss\RouteOptimizeRequest;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class DssController extends Controller
 {
@@ -46,6 +48,14 @@ class DssController extends Controller
             'strategy' => $strategy->name(),
             'plan' => array_map(fn (ProductionJob $j) => $j->toArray(), $ordered),
         ]]);
+    }
+
+    /** DSS: after production, recommend a delivery date + which driver to assign. */
+    public function deliveryRecommendation(Request $request, Order $order, DeliveryRecommendation $recommendation): JsonResponse
+    {
+        abort_unless($request->user()?->can('delivery.assign'), 403);
+
+        return response()->json(['data' => $recommendation->for($order)]);
     }
 
     /** Workflow bottleneck + recommendation. */

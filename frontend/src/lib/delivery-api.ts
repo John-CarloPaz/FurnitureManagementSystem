@@ -66,6 +66,17 @@ export async function reassignDriver(id: number, driverId: number): Promise<Deli
   return data.data
 }
 
+export interface DeliveryRecommendation {
+  recommended_date: string
+  reason: string
+  suggested_driver: { id: number; name: string; active_deliveries: number } | null
+}
+
+export async function fetchDeliveryRecommendation(orderId: number): Promise<DeliveryRecommendation> {
+  const { data } = await api.get(`/orders/${orderId}/delivery-recommendation`)
+  return data.data
+}
+
 export async function dispatchDelivery(id: number, payload: { manual_location?: string }): Promise<DeliveryAssignment> {
   const { data } = await api.post(`/deliveries/${id}/dispatch`, payload)
   return data.data

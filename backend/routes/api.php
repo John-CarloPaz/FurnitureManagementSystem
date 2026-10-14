@@ -203,6 +203,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/dss/schedule', [DssController::class, 'schedule'])->middleware('permission:manufacturing.schedule');
         Route::get('/dss/bottlenecks', [DssController::class, 'bottlenecks'])->middleware('permission:kpi.view.shopfloor');
         Route::post('/dss/route-optimize', [DssController::class, 'routeOptimize'])->middleware('permission:delivery.assign');
+        Route::get('/orders/{order}/delivery-recommendation', [DssController::class, 'deliveryRecommendation']);
     });
 
     // Signed, session-less proof-photo stream.

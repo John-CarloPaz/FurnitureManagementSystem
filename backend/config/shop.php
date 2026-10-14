@@ -17,4 +17,10 @@ return [
     | delayed past its expected delivery date. Set to 0 to disable compensation.
     */
     'delay_goodwill_percent' => (float) env('SHOP_DELAY_GOODWILL_PERCENT', 10),
+
+    /*
+    | Standard number of days to deliver after an order finishes production — used by
+    | the DSS to recommend a delivery date.
+    */
+    'delivery_window_days' => (int) env('SHOP_DELIVERY_WINDOW_DAYS', 3),
 ];

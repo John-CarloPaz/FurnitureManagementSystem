@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, AlertTriangle, Sparkles } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { StatusPill } from '@/components/ui/status-pill'
 import { FsmStepper } from '@/components/orders/fsm-stepper'
 import { useOrder, useRecordPayment, useTransition } from '@/hooks/use-orders'
 import { useProduction } from '@/hooks/use-manufacturing'
-import { useDrivers, useReassignDriver } from '@/hooks/use-delivery'
+import { useAssignDelivery, useDeliveryRecommendation, useDrivers, useReassignDriver } from '@/hooks/use-delivery'
 import { ProductionItem } from '@/components/manufacturing/production-item'
 import { DeliveryTracking } from '@/components/delivery/delivery-tracking'
 import { useAuth } from '@/hooks/use-auth'
@@ -81,11 +81,48 @@ function TransitionActions({ orderId, allowed }: { orderId: number; allowed: Ord
   )
 }
 
+/** DSS: after production, recommend a delivery date + the least-loaded driver to assign. */
+function DeliveryDss({ order }: { order: Order }) {
+  const rec = useDeliveryRecommendation(order.id, true)
+  const assign = useAssignDelivery()
+  const reassign = useReassignDriver(order.id)
+  const r = rec.data
+  if (!r) return null
+  const sd = r.suggested_driver
+  const working = assign.isPending || reassign.isPending
+
+  const onAssign = () => {
+    if (!sd) return
+    if (order.delivery) reassign.mutate({ id: order.delivery.id, driverId: sd.id })
+    else assign.mutate({ orderId: order.id, driver_id: sd.id })
+  }
+
+  return (
+    <Card className="space-y-2 border-walnut" style={{ backgroundColor: 'color-mix(in srgb, var(--amber) 7%, var(--surface))' }}>
+      <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-walnut"><Sparkles size={13} /> Delivery recommendation (DSS)</p>
+      <div className="flex justify-between text-sm"><span className="text-muted">Recommended delivery by</span><span className="font-medium text-fg">{new Date(r.recommended_date).toLocaleDateString()}</span></div>
+      {sd ? (
+        <>
+          <div className="flex justify-between text-sm"><span className="text-muted">Suggested driver</span><span className="text-fg">{sd.name} <span className="text-muted">· {sd.active_deliveries} active</span></span></div>
+          <p className="text-xs text-muted">{r.reason}</p>
+          <Button size="sm" onClick={onAssign} disabled={working}>
+            {working ? 'Assigning…' : order.delivery ? `Reassign to ${sd.name}` : `Assign ${sd.name}`}
+          </Button>
+          {(assign.isError || reassign.isError) && <p className="text-sm text-[var(--status-danger)]">{apiError(assign.error ?? reassign.error)}</p>}
+        </>
+      ) : (
+        <p className="text-sm text-muted">{r.reason} No delivery personnel available to suggest.</p>
+      )}
+    </Card>
+  )
+}
+
 /** Delivery-stage orders are advanced from the Deliveries page (driver assignment + proof). */
 function DeliverySection({ order }: { order: Order }) {
   const { has } = useAuth()
   const canAssign = has('delivery.assign')
   const delivery = order.delivery
+  const showDss = canAssign && DELIVERY_HANDOFF_STATES.includes(order.status) && (!delivery || delivery.status !== 'delivered')
   const editable = canAssign && !!delivery && delivery.status !== 'delivered'
   const drivers = useDrivers(editable)
   const reassign = useReassignDriver(order.id)
@@ -94,11 +131,14 @@ function DeliverySection({ order }: { order: Order }) {
   if (!delivery) {
     if (has('delivery.view') && DELIVERY_HANDOFF_STATES.includes(order.status)) {
       return (
-        <Card className="space-y-2">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted">Delivery</p>
-          <p className="text-sm text-muted">Assign a driver and dispatch this order from the Deliveries page.</p>
-          <Link to="/deliveries" className="inline-flex w-fit items-center gap-1.5 text-sm text-walnut hover:underline">Go to Deliveries →</Link>
-        </Card>
+        <>
+          {showDss && <DeliveryDss order={order} />}
+          <Card className="space-y-2">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted">Delivery</p>
+            <p className="text-sm text-muted">Assign a driver and dispatch this order from the Deliveries page.</p>
+            <Link to="/deliveries" className="inline-flex w-fit items-center gap-1.5 text-sm text-walnut hover:underline">Go to Deliveries →</Link>
+          </Card>
+        </>
       )
     }
     return null
@@ -107,7 +147,9 @@ function DeliverySection({ order }: { order: Order }) {
   const color = DELIVERY_STATUS_COLOR[delivery.status] ?? 'var(--status-neutral)'
 
   return (
-    <Card className="space-y-3">
+    <>
+      {showDss && <DeliveryDss order={order} />}
+      <Card className="space-y-3">
       <div className="flex items-center justify-between">
         <p className="text-xs font-medium uppercase tracking-wide text-muted">Delivery</p>
         <span className="rounded-full px-2.5 py-1 text-xs font-medium" style={{ backgroundColor: `color-mix(in srgb, ${color} 14%, transparent)`, color }}>
@@ -143,7 +185,8 @@ function DeliverySection({ order }: { order: Order }) {
       {has('delivery.view') && (
         <Link to="/deliveries" className="inline-flex w-fit items-center gap-1.5 text-sm text-walnut hover:underline">Manage in Deliveries →</Link>
       )}
-    </Card>
+      </Card>
+    </>
   )
 }
 
