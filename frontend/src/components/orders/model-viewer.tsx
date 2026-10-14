@@ -3,6 +3,13 @@ import { Canvas, useLoader } from '@react-three/fiber'
 import { OrbitControls, Center, Html, ContactShadows, useGLTF } from '@react-three/drei'
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'
 import * as THREE from 'three'
+import { DimensionRuler } from '@/components/storefront/dimension-ruler'
+
+export interface ModelDimensions {
+  width?: string | null
+  height?: string | null
+  depth?: string | null
+}
 
 /** Clone an object graph with independent materials, then tint (or restore) them. */
 function useTinted(source: THREE.Object3D, color?: string) {
@@ -75,7 +82,18 @@ class ModelErrorBoundary extends Component<{ children: ReactNode }, { failed: bo
 }
 
 /** Studio-lit R3F viewer on a bright backdrop so the piece reads clearly — 360° orbit + zoom, live color tint. */
-export function ModelViewer({ url, format, color }: { url: string; format: string; color?: string }) {
+export function ModelViewer({
+  url,
+  format,
+  color,
+  dimensions,
+}: {
+  url: string
+  format: string
+  color?: string
+  dimensions?: ModelDimensions
+}) {
+  const hasRuler = !!(dimensions && (dimensions.width || dimensions.height || dimensions.depth))
   return (
     <div className="relative h-[460px] w-full overflow-hidden rounded-[var(--radius-lg)] border border-black/5 bg-gradient-to-b from-white to-[#e9edf2] shadow-[inset_0_1px_30px_rgba(0,0,0,0.04)]">
       <Canvas camera={{ position: [3, 2, 4.5], fov: 42 }} dpr={[1, 2]} gl={{ alpha: true, antialias: true }}>
@@ -91,7 +109,8 @@ export function ModelViewer({ url, format, color }: { url: string; format: strin
         </ModelErrorBoundary>
         <OrbitControls makeDefault enablePan enableZoom autoRotate autoRotateSpeed={0.6} />
       </Canvas>
-      <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full border border-black/5 bg-white/70 px-3 py-1 text-[11px] text-fg/55 backdrop-blur">
+      {hasRuler && <DimensionRuler width={dimensions?.width} height={dimensions?.height} depth={dimensions?.depth} />}
+      <div className={`pointer-events-none absolute left-1/2 -translate-x-1/2 rounded-full border border-black/5 bg-white/70 px-3 py-1 text-[11px] text-fg/55 backdrop-blur ${hasRuler ? 'top-3' : 'bottom-3'}`}>
         Drag to rotate · scroll to zoom
       </div>
     </div>

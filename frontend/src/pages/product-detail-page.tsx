@@ -68,7 +68,7 @@ export function ProductDetailPage() {
               )}
             </div>
             {preview?.model_url ? (
-              <ModelViewer key={preview.model_url} url={fileUrl(preview.model_url)} format={preview.model_format ?? 'glb'} />
+              <ModelViewer key={preview.model_url} url={fileUrl(preview.model_url)} format={preview.model_format ?? 'glb'} dimensions={{ width: product.width_cm, height: product.height_cm, depth: product.depth_cm }} />
             ) : (
               <ProductModelPanel product={product} />
             )}

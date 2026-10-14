@@ -62,7 +62,7 @@ export function ProductModelPanel({ product }: { product: Product }) {
   return (
     <div className="space-y-4">
       {url && current ? (
-        <ModelViewer url={url} format={current.format} />
+        <ModelViewer url={url} format={current.format} dimensions={{ width: product.width_cm, height: product.height_cm, depth: product.depth_cm }} />
       ) : isGenerating ? (
         <div className="flex h-[420px] flex-col items-center justify-center gap-3 rounded-[var(--radius-md)] border border-dashed border-border bg-surface-2 text-muted">
           <Loader2 size={30} className="animate-spin text-walnut" />

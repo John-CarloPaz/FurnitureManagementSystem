@@ -97,7 +97,7 @@ export function StorefrontProduct() {
           )}
 
           {modelUrl && view === '3d' ? (
-            <ModelViewer key={modelUrl} url={fileUrl(modelUrl)} format={modelFormat} color={tint} />
+            <ModelViewer key={modelUrl} url={fileUrl(modelUrl)} format={modelFormat} color={tint} dimensions={{ width: product.width_cm, height: product.height_cm, depth: product.depth_cm }} />
           ) : photoUrl ? (
             <div className="relative overflow-hidden rounded-[var(--radius-lg)] border border-black/5">
               <img src={photoUrl} alt={product.name} className="aspect-square w-full bg-white object-contain" />
