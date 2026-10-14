@@ -9,6 +9,9 @@ export interface ShopProduct {
   material: string | null
   wood_type: string | null
   finish: string | null
+  width_cm: string | null
+  depth_cm: string | null
+  height_cm: string | null
   dimensions_label: string | null
   description: string | null
   base_price: string

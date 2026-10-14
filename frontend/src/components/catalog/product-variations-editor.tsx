@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, Trash2, Palette, Sparkles, Upload, Check, Loader2 } from 'lucide-react'
+import { Plus, Trash2, Palette, Sparkles, Upload, Check, Loader2, Eye } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useGenerateVariationModel, useSyncVariations, useUploadVariationModel } from '@/hooks/use-products'
 import { apiError } from '@/lib/api-error'
@@ -7,7 +7,15 @@ import type { ProductVariation } from '@/lib/products-api'
 
 type Row = { id?: number; name: string; color_hex: string }
 
-export function ProductVariationsEditor({ productId, initial }: { productId: number; initial: ProductVariation[] }) {
+export function ProductVariationsEditor({
+  productId,
+  initial,
+  onView,
+}: {
+  productId: number
+  initial: ProductVariation[]
+  onView?: (variation: ProductVariation) => void
+}) {
   const sync = useSyncVariations(productId)
   const uploadModel = useUploadVariationModel(productId)
   const generate = useGenerateVariationModel(productId)
@@ -90,6 +98,11 @@ export function ProductVariationsEditor({ productId, initial }: { productId: num
                       status(sv)
                     )}
                     <span className="flex-1" />
+                    {sv?.has_model && onView && (
+                      <button onClick={() => onView(sv)} className="inline-flex items-center gap-1 rounded-full border border-walnut px-2.5 py-1 text-xs text-walnut hover:bg-[var(--amber-soft)]">
+                        <Eye size={12} /> View 3D
+                      </button>
+                    )}
                     <label className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-border px-2.5 py-1 text-xs text-fg hover:bg-surface-2">
                       <Sparkles size={12} /> Generate from photo
                       <input type="file" accept="image/*" className="hidden" onChange={(e) => onGenerate(row.id!, e.target.files?.[0])} />

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { ModelViewer } from '@/components/orders/model-viewer'
 import { StarRating } from '@/components/storefront/star-rating'
+import { DimensionRuler } from '@/components/storefront/dimension-ruler'
 import { useShopProduct } from '@/hooks/use-storefront'
 import { useReviews, useSubmitReview, useDeleteReview, useCanReview } from '@/hooks/use-reviews'
 import { useAuth } from '@/hooks/use-auth'
@@ -98,7 +99,10 @@ export function StorefrontProduct() {
           {modelUrl && view === '3d' ? (
             <ModelViewer key={modelUrl} url={fileUrl(modelUrl)} format={modelFormat} color={tint} />
           ) : photoUrl ? (
-            <img src={photoUrl} alt={product.name} className="aspect-square w-full rounded-[var(--radius-lg)] border border-black/5 object-cover" />
+            <div className="relative overflow-hidden rounded-[var(--radius-lg)] border border-black/5">
+              <img src={photoUrl} alt={product.name} className="aspect-square w-full bg-white object-contain" />
+              <DimensionRuler width={product.width_cm} height={product.height_cm} depth={product.depth_cm} />
+            </div>
           ) : (
             <div className="flex h-[460px] items-center justify-center rounded-[var(--radius-lg)] bg-surface-2 text-muted">No preview</div>
           )}
@@ -112,10 +116,10 @@ export function StorefrontProduct() {
               <div className="flex flex-wrap items-center gap-2.5">
                 <button
                   onClick={() => setActiveVariationId(null)}
-                  aria-label="Original finish"
-                  title="Original"
-                  className={`h-9 w-9 rounded-full border bg-gradient-to-br from-white to-surface-2 transition-transform hover:scale-110 ${activeVariationId === null ? 'border-walnut ring-2 ring-[var(--amber)] ring-offset-2 ring-offset-bg' : 'border-border'}`}
-                />
+                  className={`h-9 rounded-full border px-3.5 text-xs font-medium transition-colors ${activeVariationId === null ? 'border-walnut bg-[var(--amber-soft)] text-walnut' : 'border-border text-muted hover:text-fg'}`}
+                >
+                  Original
+                </button>
                 {product.variations.map((v) => (
                   <button
                     key={v.id}

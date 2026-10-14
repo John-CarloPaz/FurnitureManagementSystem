@@ -1,14 +1,16 @@
 import { useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Plus, ShoppingCart, Pencil } from 'lucide-react'
+import { ArrowLeft, Plus, ShoppingCart, Pencil, X } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ProductModelPanel } from '@/components/catalog/product-model-panel'
 import { ProductForm } from '@/components/catalog/product-form'
 import { ProductVariationsEditor } from '@/components/catalog/product-variations-editor'
+import { ModelViewer } from '@/components/orders/model-viewer'
 import { useChangeProductStatus, useProduct, useUpdateProduct } from '@/hooks/use-products'
 import { useAuth } from '@/hooks/use-auth'
 import { useCart } from '@/stores/cart'
+import { fileUrl } from '@/lib/api'
 import { PRODUCT_STATUS_META, peso, type ProductStatus } from '@/lib/status'
 
 const STATUS_ACTION: Record<ProductStatus, 'publish' | 'unpublish' | 'archive'> = {
@@ -28,9 +30,13 @@ export function ProductDetailPage() {
   const cartCount = useCart((s) => s.count())
   const { has } = useAuth()
   const [editing, setEditing] = useState(false)
+  const [previewId, setPreviewId] = useState<number | null>(null)
 
   if (isLoading) return <div className="p-8 text-center text-muted">Loading…</div>
   if (!product) return <div className="p-8 text-center text-muted">Product not found.</div>
+
+  // Preview a variation's own 3D model in the main viewer (derived live so it stays fresh).
+  const preview = product.variations?.find((v) => v.id === previewId && v.model_url) ?? null
 
   const meta = PRODUCT_STATUS_META[product.status]
   const canManage = has('products.update')
@@ -53,8 +59,19 @@ export function ProductDetailPage() {
       <div className="grid gap-6 lg:grid-cols-5">
         <div className="lg:col-span-3">
           <Card>
-            <h2 className="mb-4 font-display text-lg text-fg">3D Model</h2>
-            <ProductModelPanel product={product} />
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="font-display text-lg text-fg">3D Model{preview ? ` · ${preview.name}` : ''}</h2>
+              {preview && (
+                <button onClick={() => setPreviewId(null)} className="inline-flex items-center gap-1 text-xs text-walnut hover:underline">
+                  <X size={13} /> Back to base model
+                </button>
+              )}
+            </div>
+            {preview?.model_url ? (
+              <ModelViewer key={preview.model_url} url={fileUrl(preview.model_url)} format={preview.model_format ?? 'glb'} />
+            ) : (
+              <ProductModelPanel product={product} />
+            )}
           </Card>
         </div>
 
@@ -120,7 +137,7 @@ export function ProductDetailPage() {
 
           {canManage && (
             <Card>
-              <ProductVariationsEditor productId={productId} initial={product.variations ?? []} />
+              <ProductVariationsEditor productId={productId} initial={product.variations ?? []} onView={(v) => setPreviewId(v.id)} />
             </Card>
           )}
 
