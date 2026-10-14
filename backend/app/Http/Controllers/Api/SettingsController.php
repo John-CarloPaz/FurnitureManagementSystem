@@ -24,20 +24,23 @@ class SettingsController extends Controller
         $validated = $request->validate([
             'shipping_fee' => ['required', 'numeric', 'min:0'],
             'vat_rate' => ['required', 'numeric', 'min:0', 'max:1'], // a rate, e.g. 0.12 = 12%
+            'terms' => ['nullable', 'string', 'max:20000'],
         ]);
 
         Settings::set('shop.shipping_fee', $validated['shipping_fee']);
         Settings::set('shop.vat_rate', $validated['vat_rate']);
+        Settings::set('shop.terms', $validated['terms'] ?? '');
 
         return response()->json(['data' => $this->current()]);
     }
 
-    /** @return array{shipping_fee: float, vat_rate: float} */
+    /** @return array{shipping_fee: float, vat_rate: float, terms: string} */
     private function current(): array
     {
         return [
             'shipping_fee' => (float) Settings::get('shop.shipping_fee', config('shop.shipping_fee')),
             'vat_rate' => (float) Settings::get('shop.vat_rate', config('shop.vat_rate')),
+            'terms' => (string) Settings::get('shop.terms', ''),
         ];
     }
 }

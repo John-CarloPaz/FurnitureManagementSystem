@@ -73,6 +73,8 @@ export interface Order {
   placed_at: string | null
   confirmed_at: string | null
   delivered_at: string | null
+  expected_delivery_at: string | null
+  is_delayed: boolean
   created_at: string
   updated_at: string
 }

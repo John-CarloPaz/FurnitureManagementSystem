@@ -14,6 +14,7 @@ export function SettingsPage() {
   const update = useUpdateSettings()
   const [shipping, setShipping] = useState('')
   const [vatPct, setVatPct] = useState('')
+  const [terms, setTerms] = useState('')
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -21,6 +22,7 @@ export function SettingsPage() {
     if (data) {
       setShipping(String(data.shipping_fee))
       setVatPct(String(Number((data.vat_rate * 100).toFixed(2))))
+      setTerms(data.terms ?? '')
     }
   }, [data])
 
@@ -33,8 +35,8 @@ export function SettingsPage() {
       setError('Enter a valid shipping fee and a tax rate between 0 and 100%.')
       return
     }
-    update.mutate({ shipping_fee, vat_rate }, {
-      onSuccess: () => setMessage('Settings saved — they apply to new orders right away.'),
+    update.mutate({ shipping_fee, vat_rate, terms }, {
+      onSuccess: () => setMessage('Settings saved — they apply right away.'),
       onError: (e) => setError(apiError(e)),
     })
   }
@@ -69,6 +71,12 @@ export function SettingsPage() {
 
           <div className="rounded-[var(--radius-sm)] border border-border bg-surface-2 p-3 text-sm text-muted">
             Example — a {peso(sample)} order: shipping <span className="text-fg">{peso(sh)}</span> + VAT <span className="text-fg">{peso(tax)}</span> → total <span className="font-medium text-fg">{peso(sample + sh + tax)}</span>
+          </div>
+
+          <div className="space-y-1.5 border-t border-border pt-4">
+            <label className="text-sm font-medium text-fg" htmlFor="terms">Terms &amp; Conditions / Policy</label>
+            <textarea id="terms" rows={10} value={terms} onChange={(e) => setTerms(e.target.value)} placeholder="Your shop's terms, return policy, warranty…" className={`${inputCls} font-mono text-xs`} />
+            <p className="text-xs text-muted">Shown publicly at <code>/shop/terms</code>, linked in the storefront footer. Blank lines separate paragraphs.</p>
           </div>
 
           <Button size="pill" onClick={save} disabled={update.isPending}>

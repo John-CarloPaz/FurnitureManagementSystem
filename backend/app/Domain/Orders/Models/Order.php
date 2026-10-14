@@ -32,6 +32,9 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $placed_at
  * @property Carbon|null $confirmed_at
  * @property Carbon|null $delivered_at
+ * @property Carbon|null $expected_delivery_at
+ * @property bool $is_delayed
+ * @property Carbon|null $delay_notified_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -42,6 +45,7 @@ class Order extends Model
         'subtotal', 'delivery_fee', 'tax_amount', 'discount_amount', 'voucher_id', 'voucher_code',
         'total', 'downpayment', 'amount_paid', 'payment_status', 'payment_method',
         'delivery_address', 'notes', 'placed_at', 'confirmed_at', 'delivered_at',
+        'expected_delivery_at', 'is_delayed', 'delay_notified_at',
     ];
 
     protected function casts(): array
@@ -52,6 +56,9 @@ class Order extends Model
             'placed_at' => 'datetime',
             'confirmed_at' => 'datetime',
             'delivered_at' => 'datetime',
+            'expected_delivery_at' => 'datetime',
+            'is_delayed' => 'boolean',
+            'delay_notified_at' => 'datetime',
             'subtotal' => 'decimal:2',
             'delivery_fee' => 'decimal:2',
             'tax_amount' => 'decimal:2',

@@ -66,3 +66,8 @@ export async function fetchShopSettings(): Promise<ShopSettings> {
   const { data } = await api.get('/shop/settings')
   return data.data
 }
+
+export async function fetchTerms(): Promise<string> {
+  const { data } = await api.get('/shop/terms')
+  return data.data.terms
+}

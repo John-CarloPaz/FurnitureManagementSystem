@@ -46,6 +46,12 @@ class StorefrontController extends Controller
         );
     }
 
+    /** Public: the shop's terms & conditions / policy text (super-admin editable). */
+    public function terms(): JsonResponse
+    {
+        return response()->json(['data' => ['terms' => (string) Settings::get('shop.terms', '')]]);
+    }
+
     /** Public storefront pricing settings so the checkout can show shipping + VAT live. */
     public function settings(): JsonResponse
     {

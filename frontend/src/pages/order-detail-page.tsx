@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, AlertTriangle } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { StatusPill } from '@/components/ui/status-pill'
@@ -203,8 +203,21 @@ export function OrderDetailPage() {
           <h1 className="font-display text-3xl text-fg">{peso(order.total)}</h1>
           <p className="text-sm text-muted">{order.customer?.name}</p>
         </div>
-        <StatusPill state={order.status} />
+        <div className="flex items-center gap-2">
+          {order.is_delayed && order.status !== 'DELIVERED' && order.status !== 'COMPLETED' && (
+            <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium" style={{ backgroundColor: 'color-mix(in srgb, var(--status-alert, #b5731a) 14%, transparent)', color: 'var(--status-alert, #b5731a)' }}>
+              <AlertTriangle size={12} /> Delayed
+            </span>
+          )}
+          <StatusPill state={order.status} />
+        </div>
       </div>
+
+      {order.is_delayed && order.expected_delivery_at && order.status !== 'DELIVERED' && order.status !== 'COMPLETED' && (
+        <p className="text-sm" style={{ color: 'var(--status-alert, #b5731a)' }}>
+          Past its expected delivery of {new Date(order.expected_delivery_at).toLocaleDateString()} — the customer has been notified.
+        </p>
+      )}
 
       <Card><FsmStepper state={order.status} /></Card>
 

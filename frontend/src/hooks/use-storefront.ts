@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { fetchShopCategories, fetchShopProduct, fetchShopProducts, fetchShopSettings, type ShopProductsParams } from '@/lib/storefront-api'
+import { fetchShopCategories, fetchShopProduct, fetchShopProducts, fetchShopSettings, fetchTerms, type ShopProductsParams } from '@/lib/storefront-api'
 
 export function useShopProducts(params?: ShopProductsParams) {
   return useQuery({ queryKey: ['shop-products', params], queryFn: () => fetchShopProducts(params) })
@@ -15,4 +15,8 @@ export function useShopCategories() {
 
 export function useShopSettings() {
   return useQuery({ queryKey: ['shop-settings'], queryFn: fetchShopSettings, staleTime: 30 * 60 * 1000 })
+}
+
+export function useTerms() {
+  return useQuery({ queryKey: ['shop-terms'], queryFn: fetchTerms, staleTime: 10 * 60 * 1000 })
 }

@@ -3,6 +3,7 @@ import { api } from './api'
 export interface ShopConfig {
   shipping_fee: number
   vat_rate: number
+  terms: string
 }
 
 export async function fetchAdminSettings(): Promise<ShopConfig> {

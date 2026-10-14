@@ -28,6 +28,7 @@ import { StorefrontCart } from '@/pages/storefront/storefront-cart'
 import { StorefrontOrders } from '@/pages/storefront/storefront-orders'
 import { StorefrontOrderDetail } from '@/pages/storefront/storefront-order-detail'
 import { StorefrontAddresses } from '@/pages/storefront/storefront-addresses'
+import { StorefrontTerms } from '@/pages/storefront/storefront-terms'
 import { ProtectedRoute } from '@/components/auth/protected-route'
 
 // Code-split: 3D-viewer pages pull in Three.js.
@@ -58,6 +59,7 @@ export default function App() {
           <Route path="orders" element={<StorefrontOrders />} />
           <Route path="orders/:id" element={<StorefrontOrderDetail />} />
           <Route path="addresses" element={<StorefrontAddresses />} />
+          <Route path="terms" element={<StorefrontTerms />} />
         </Route>
 
         <Route element={<ProtectedRoute />}>

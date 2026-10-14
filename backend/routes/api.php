@@ -58,6 +58,7 @@ Route::prefix('v1')->group(function () {
     // Public marketplace — browse published products without an account.
     Route::get('/shop/products', [StorefrontController::class, 'products']);
     Route::get('/shop/settings', [StorefrontController::class, 'settings']);
+    Route::get('/shop/terms', [StorefrontController::class, 'terms']);
     Route::get('/shop/categories', [StorefrontController::class, 'categories']);
     Route::get('/shop/products/{product}', [StorefrontController::class, 'product']);
     Route::get('/shop/products/{product}/reviews', [ReviewController::class, 'index']);

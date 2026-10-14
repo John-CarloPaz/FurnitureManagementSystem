@@ -40,7 +40,14 @@ export function StorefrontOrders() {
                     <p className="font-mono text-xs text-muted">{o.order_number}</p>
                     <p className="text-fg">{peso(o.total)}</p>
                   </td>
-                  <td className="px-6 py-4 text-right"><StatusPill state={o.status} /></td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      {o.is_delayed && o.status !== 'DELIVERED' && o.status !== 'COMPLETED' && (
+                        <span className="rounded-full px-2 py-0.5 text-[10px] font-medium" style={{ backgroundColor: 'color-mix(in srgb, var(--status-alert, #b5731a) 14%, transparent)', color: 'var(--status-alert, #b5731a)' }}>Delayed</span>
+                      )}
+                      <StatusPill state={o.status} />
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>

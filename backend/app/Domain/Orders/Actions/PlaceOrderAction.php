@@ -30,6 +30,7 @@ class PlaceOrderAction
         return DB::transaction(function () use ($customer, $items, $deliveryAddress, $notes, $voucherCode, $paymentMethod) {
             $subtotal = 0.0;
             $rows = [];
+            $maxLeadDays = 0;
 
             foreach ($items as $line) {
                 $product = Product::find($line['product_id']);
@@ -39,6 +40,7 @@ class PlaceOrderAction
                     ]);
                 }
 
+                $maxLeadDays = max($maxLeadDays, (int) ($product->lead_time_days ?? 0));
                 $qty = max(1, (int) $line['quantity']);
                 $lineTotal = (float) $product->base_price * $qty;
                 $subtotal += $lineTotal;
@@ -58,6 +60,7 @@ class PlaceOrderAction
             }
 
             $pricing = PricingCalculator::compute($subtotal, $resolved['discount']);
+            $leadDays = $maxLeadDays > 0 ? $maxLeadDays : (int) config('analytics.target_lead_days', 14);
 
             $order = Order::create([
                 'order_number' => 'PENDING',
@@ -75,6 +78,7 @@ class PlaceOrderAction
                 'delivery_address' => $deliveryAddress,
                 'notes' => $notes,
                 'placed_at' => now(),
+                'expected_delivery_at' => now()->addDays($leadDays),
             ]);
 
             $order->update(['order_number' => 'ORD-'.str_pad((string) $order->id, 4, '0', STR_PAD_LEFT)]);

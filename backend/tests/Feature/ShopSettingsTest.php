@@ -38,6 +38,16 @@ class ShopSettingsTest extends TestCase
         $this->getJson('/api/v1/settings')->assertOk()->assertJsonStructure(['data' => ['shipping_fee', 'vat_rate']]);
     }
 
+    public function test_super_admin_sets_terms_and_the_public_can_read_them(): void
+    {
+        Sanctum::actingAs($this->user('super_admin'));
+        $this->patchJson('/api/v1/settings', ['shipping_fee' => 500, 'vat_rate' => 0.12, 'terms' => 'Be excellent to each other.'])
+            ->assertOk()
+            ->assertJsonPath('data.terms', 'Be excellent to each other.');
+
+        $this->getJson('/api/v1/shop/terms')->assertOk()->assertJsonPath('data.terms', 'Be excellent to each other.');
+    }
+
     public function test_super_admin_updates_shipping_and_tax_and_it_affects_new_orders(): void
     {
         Sanctum::actingAs($this->user('super_admin'));

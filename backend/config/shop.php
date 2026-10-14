@@ -11,4 +11,10 @@ return [
     'shipping_fee' => (float) env('SHOP_SHIPPING_FEE', 500),
 
     'vat_rate' => (float) env('SHOP_VAT_RATE', 0.12),
+
+    /*
+    | Goodwill discount (%) auto-issued to a customer when their order is flagged
+    | delayed past its expected delivery date. Set to 0 to disable compensation.
+    */
+    'delay_goodwill_percent' => (float) env('SHOP_DELAY_GOODWILL_PERCENT', 10),
 ];

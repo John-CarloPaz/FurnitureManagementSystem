@@ -44,6 +44,15 @@ export function StorefrontOrderDetail() {
         <StatusPill state={order.status} />
       </div>
 
+      {order.is_delayed && order.status !== 'DELIVERED' && order.status !== 'COMPLETED' && (
+        <Card className="border-[var(--status-alert,#b5731a)]" style={{ backgroundColor: 'color-mix(in srgb, var(--status-alert, #b5731a) 8%, var(--surface))' }}>
+          <p className="text-sm font-medium" style={{ color: 'var(--status-alert, #b5731a)' }}>This order is running late.</p>
+          <p className="mt-1 text-sm text-muted">
+            It's past its estimated delivery{order.expected_delivery_at ? ` (${new Date(order.expected_delivery_at).toLocaleDateString()})` : ''} and we're prioritizing it. We've emailed you an update{` — check your inbox for a goodwill discount.`}
+          </p>
+        </Card>
+      )}
+
       <Card><FsmStepper state={order.status} /></Card>
 
       {PAYMENTS_ENABLED && order.payment_status !== 'PAID' && (order.payment_method === 'GCASH' || order.payment_method === 'BANK') && (

@@ -47,6 +47,8 @@ class OrderResource extends JsonResource
             'placed_at' => $this->placed_at,
             'confirmed_at' => $this->confirmed_at,
             'delivered_at' => $this->delivered_at,
+            'expected_delivery_at' => $this->expected_delivery_at,
+            'is_delayed' => $this->is_delayed,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

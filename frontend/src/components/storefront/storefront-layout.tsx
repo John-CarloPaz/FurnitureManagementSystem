@@ -70,7 +70,8 @@ export function StorefrontLayout() {
       </main>
 
       <footer className="border-t border-border py-8 text-center text-xs text-muted">
-        Cedarside Holding Corp. · Handcrafted furniture, seen in 3D
+        <p>Cedarside Holding Corp. · Handcrafted furniture, seen in 3D</p>
+        <Link to="/shop/terms" className="mt-1 inline-block text-walnut hover:underline">Terms &amp; Conditions</Link>
       </footer>
     </div>
   )
