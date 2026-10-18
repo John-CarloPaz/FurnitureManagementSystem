@@ -177,6 +177,23 @@ export async function getModelDownloadUrl(versionId: number): Promise<string> {
   return fileUrl(data.data.url)
 }
 
+export interface ProductInsights {
+  units_sold: number
+  revenue: number
+  orders_count: number
+  rating_avg: number | null
+  rating_count: number
+  on_time_rate: number | null
+  delayed_rate: number
+  defect_rate: number
+  orders_by_status: Record<string, number>
+}
+
+export async function fetchProductInsights(id: number): Promise<ProductInsights> {
+  const { data } = await api.get(`/products/${id}/insights`)
+  return data.data
+}
+
 export async function syncProductVariations(productId: number, variations: VariationInput[]): Promise<ProductVariation[]> {
   const { data } = await api.put(`/products/${productId}/variations`, { variations })
   return data.data

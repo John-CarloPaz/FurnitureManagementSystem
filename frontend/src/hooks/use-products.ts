@@ -6,6 +6,7 @@ import {
   fetchProduct,
   fetchProductVersions,
   fetchProducts,
+  fetchProductInsights,
   generateProductModel,
   generateVariationModel,
   syncProductVariations,
@@ -81,6 +82,14 @@ export function useChangeProductStatus(id: number) {
       qc.invalidateQueries({ queryKey: ['products', id] })
       qc.invalidateQueries({ queryKey: ['products'] })
     },
+  })
+}
+
+export function useProductInsights(productId: number) {
+  return useQuery({
+    queryKey: ['products', productId, 'insights'],
+    queryFn: () => fetchProductInsights(productId),
+    enabled: !!productId,
   })
 }
 

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { ProductModelPanel } from '@/components/catalog/product-model-panel'
 import { ProductForm } from '@/components/catalog/product-form'
 import { ProductVariationsEditor } from '@/components/catalog/product-variations-editor'
+import { ProductInsightsCard } from '@/components/catalog/product-insights-card'
 import { ModelViewer } from '@/components/orders/model-viewer'
 import { useChangeProductStatus, useProduct, useUpdateProduct } from '@/hooks/use-products'
 import { useAuth } from '@/hooks/use-auth'
@@ -167,6 +168,8 @@ export function ProductDetailPage() {
           )}
         </div>
       </div>
+
+      {has('products.viewAny') && <ProductInsightsCard productId={productId} />}
     </div>
   )
 }

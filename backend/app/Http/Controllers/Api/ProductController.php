@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Domain\Analytics\Support\ProductInsights;
 use App\Domain\ModelGeneration\Actions\GenerateProductModelAction;
 use App\Domain\ModelGeneration\Contracts\ModelGenerator;
 use App\Domain\Products\Actions\ChangeProductStatusAction;
@@ -103,6 +104,14 @@ class ProductController extends Controller
         $this->authorize('view', $product);
 
         return new ProductResource($product->load(['images', 'model', 'latestModelGeneration', 'variations.latestModelGeneration']));
+    }
+
+    /** Per-product performance dashboard (sales, ratings, on-time %, defect %, delay %). Staff only. */
+    public function insights(Request $request, Product $product, ProductInsights $insights): JsonResponse
+    {
+        abort_unless($request->user()?->can('products.viewAny'), 403);
+
+        return response()->json(['data' => $insights->for($product)]);
     }
 
     public function update(UpdateProductRequest $request, Product $product): ProductResource
