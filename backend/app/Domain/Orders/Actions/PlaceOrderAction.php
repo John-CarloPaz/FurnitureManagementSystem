@@ -17,7 +17,7 @@ class PlaceOrderAction
     public function __construct(private readonly ResolveVoucher $voucher) {}
 
     /**
-     * @param  array<int, array{product_id:int, quantity:int}>  $items
+     * @param  array<int, array{product_id:int, quantity:int, variation_id?:int|null}>  $items
      */
     public function execute(
         User $customer,
@@ -45,8 +45,14 @@ class PlaceOrderAction
                 $lineTotal = (float) $product->base_price * $qty;
                 $subtotal += $lineTotal;
 
+                // Record which colour variation was ordered (if any) for sales insights.
+                $variationId = isset($line['variation_id']) ? (int) $line['variation_id'] : null;
+                $variation = $variationId ? $product->variations()->whereKey($variationId)->first() : null;
+
                 $rows[] = [
                     'product_id' => $product->id,
+                    'variation_id' => $variation?->id,
+                    'variation_name' => $variation?->name,
                     'product_name' => $product->name,
                     'unit_price' => $product->base_price,
                     'quantity' => $qty,

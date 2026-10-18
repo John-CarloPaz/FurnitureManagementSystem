@@ -84,7 +84,10 @@ export function StorefrontOrderDetail() {
           <tbody>
             {order.items?.map((it) => (
               <tr key={it.id} className="border-b border-border last:border-0">
-                <td className="px-6 py-3 text-fg">{it.product_name}</td>
+                <td className="px-6 py-3 text-fg">
+                  {it.product_name}
+                  {it.variation_name && <span className="block text-xs text-walnut">Finish: {it.variation_name}</span>}
+                </td>
                 <td className="px-6 py-3 text-muted">×{it.quantity}</td>
                 <td className="px-6 py-3 text-right font-mono text-fg">{peso(it.line_total)}</td>
               </tr>

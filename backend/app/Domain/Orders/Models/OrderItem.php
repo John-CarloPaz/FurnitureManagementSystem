@@ -15,6 +15,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property int $id
  * @property int $order_id
  * @property int|null $product_id
+ * @property int|null $variation_id
+ * @property string|null $variation_name
  * @property string $product_name
  * @property string $unit_price
  * @property int $quantity
@@ -23,7 +25,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class OrderItem extends Model
 {
     protected $fillable = [
-        'order_id', 'product_id', 'product_name', 'unit_price', 'quantity', 'line_total',
+        'order_id', 'product_id', 'variation_id', 'variation_name', 'product_name', 'unit_price', 'quantity', 'line_total',
     ];
 
     protected function casts(): array

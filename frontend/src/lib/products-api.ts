@@ -183,6 +183,7 @@ export interface ProductInsights {
   orders_count: number
   rating_avg: number | null
   rating_count: number
+  top_variant: { name: string; units: number } | null
   on_time_rate: number | null
   delayed_rate: number
   defect_rate: number

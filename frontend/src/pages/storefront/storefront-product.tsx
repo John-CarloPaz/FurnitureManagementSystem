@@ -47,12 +47,6 @@ export function StorefrontProduct() {
     return <p className="py-16 text-center text-muted">Product not found. <Link to="/shop" className="text-walnut">Back to shop</Link></p>
   }
 
-  const onAdd = () => {
-    add({ id: product.id, name: product.name, base_price: product.base_price })
-    setAdded(true)
-    setTimeout(() => setAdded(false), 1500)
-  }
-
   const specs: [string, string | null][] = [
     ['Category', product.category],
     ['Material', product.material],
@@ -69,6 +63,15 @@ export function StorefrontProduct() {
   const modelFormat = activeVar?.model_format ?? product.model_format ?? 'glb'
   const tint = activeVar && !activeVar.model_url ? activeVar.color_hex : undefined
   const photoUrl = activeVar?.image_url ?? product.image_url ?? null
+
+  const onAdd = () => {
+    add(
+      { id: product.id, name: product.name, base_price: product.base_price },
+      activeVar ? { id: activeVar.id, name: activeVar.name, color_hex: activeVar.color_hex } : undefined,
+    )
+    setAdded(true)
+    setTimeout(() => setAdded(false), 1500)
+  }
 
   return (
     <div className="space-y-6">

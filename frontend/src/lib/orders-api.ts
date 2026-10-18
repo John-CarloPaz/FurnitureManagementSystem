@@ -9,6 +9,7 @@ export interface OrderItem {
   id: number
   product_id: number | null
   product_name: string
+  variation_name: string | null
   unit_price: string
   quantity: number
   line_total: string
@@ -81,6 +82,7 @@ export interface Order {
 
 export interface PlaceOrderItem {
   product_id: number
+  variation_id?: number
   quantity: number
 }
 

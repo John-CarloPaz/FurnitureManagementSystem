@@ -17,6 +17,7 @@ class PlaceOrderRequest extends FormRequest
         return [
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'integer', 'exists:products,id'],
+            'items.*.variation_id' => ['nullable', 'integer', 'exists:product_variations,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
             'delivery_address' => ['nullable', 'string', 'max:1000'],
             'notes' => ['nullable', 'string', 'max:1000'],

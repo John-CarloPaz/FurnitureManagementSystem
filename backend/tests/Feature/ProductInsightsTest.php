@@ -60,6 +60,33 @@ class ProductInsightsTest extends TestCase
         $this->assertEquals(1, $res->json('data.orders_by_status.DELIVERED'));
     }
 
+    public function test_insights_report_best_selling_variation(): void
+    {
+        $customer = User::factory()->create();
+        $product = Product::create(['name' => 'Bench', 'slug' => 'bench-ins', 'base_price' => 1000, 'status' => ProductStatus::PUBLISHED]);
+
+        // Walnut: 3 units across one order.
+        $o1 = Order::create(['order_number' => 'ORD-VAR-1', 'customer_id' => $customer->id, 'status' => OrderState::DELIVERED, 'subtotal' => 3000, 'total' => 3000, 'payment_status' => 'PAID']);
+        $o1->items()->create(['product_id' => $product->id, 'variation_name' => 'Walnut', 'product_name' => 'Bench', 'unit_price' => 1000, 'quantity' => 3, 'line_total' => 3000]);
+
+        // Oak: 1 unit.
+        $o2 = Order::create(['order_number' => 'ORD-VAR-2', 'customer_id' => $customer->id, 'status' => OrderState::DELIVERED, 'subtotal' => 1000, 'total' => 1000, 'payment_status' => 'PAID']);
+        $o2->items()->create(['product_id' => $product->id, 'variation_name' => 'Oak', 'product_name' => 'Bench', 'unit_price' => 1000, 'quantity' => 1, 'line_total' => 1000]);
+
+        // Oak units inside a cancelled order must not count.
+        $cancelled = Order::create(['order_number' => 'ORD-VAR-3', 'customer_id' => $customer->id, 'status' => OrderState::CANCELLED, 'subtotal' => 9000, 'total' => 9000, 'payment_status' => 'UNPAID']);
+        $cancelled->items()->create(['product_id' => $product->id, 'variation_name' => 'Oak', 'product_name' => 'Bench', 'unit_price' => 1000, 'quantity' => 9, 'line_total' => 9000]);
+
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+        Sanctum::actingAs($admin);
+
+        $res = $this->getJson("/api/v1/products/{$product->id}/insights")->assertOk();
+
+        $this->assertEquals('Walnut', $res->json('data.top_variant.name'));
+        $this->assertEquals(3, $res->json('data.top_variant.units'));
+    }
+
     public function test_customers_cannot_view_insights(): void
     {
         $product = Product::create(['name' => 'Chair', 'slug' => 'chair-ins', 'base_price' => 1000, 'status' => ProductStatus::PUBLISHED]);

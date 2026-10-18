@@ -51,6 +51,15 @@ export function ProductInsightsCard({ productId }: { productId: number }) {
             <Tile label="Avg rating" value={d.rating_count ? `${d.rating_avg ?? '—'}★ · ${d.rating_count}` : '—'} />
           </div>
 
+          {d.top_variant && (
+            <div className="flex items-center justify-between rounded-[var(--radius-sm)] border border-walnut bg-[var(--amber-soft)] px-4 py-3">
+              <span className="text-sm text-muted">Best-selling finish</span>
+              <span className="text-sm font-medium text-fg">
+                {d.top_variant.name} <span className="text-muted">· {d.top_variant.units} sold</span>
+              </span>
+            </div>
+          )}
+
           <div className="grid grid-cols-3 gap-3">
             <Meter label="On-time delivery" value={d.on_time_rate} tone="var(--status-success, #3f7d4a)" />
             <Meter label="Defect / rework" value={d.defect_rate} tone="var(--status-danger, #b0402f)" />

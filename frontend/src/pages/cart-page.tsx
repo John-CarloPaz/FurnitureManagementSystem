@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { Trash2, ArrowLeft } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { useCart } from '@/stores/cart'
+import { useCart, cartItemKey } from '@/stores/cart'
 import { usePlaceOrder } from '@/hooks/use-orders'
 import { peso } from '@/lib/status'
 
@@ -17,7 +17,7 @@ export function CartPage() {
   const onPlace = () => {
     place.mutate(
       {
-        items: items.map((i) => ({ product_id: i.product.id, quantity: i.quantity })),
+        items: items.map((i) => ({ product_id: i.product.id, variation_id: i.variation?.id, quantity: i.quantity })),
         deliveryAddress: address || undefined,
         notes: notes || undefined,
       },
@@ -51,31 +51,36 @@ export function CartPage() {
       <Card className="p-0">
         <table className="w-full text-sm">
           <tbody>
-            {items.map(({ product, quantity }) => (
-              <tr key={product.id} className="border-b border-border last:border-0">
-                <td className="px-5 py-3">
-                  <p className="text-fg">{product.name}</p>
-                  <p className="text-xs text-muted">{peso(product.base_price)} each</p>
-                </td>
-                <td className="px-5 py-3">
-                  <input
-                    type="number"
-                    min="1"
-                    value={quantity}
-                    onChange={(e) => setQty(product.id, Number(e.target.value))}
-                    className="w-16 rounded-[var(--radius-sm)] border border-border bg-bg px-2 py-1 text-sm text-fg outline-none focus:ring-2 focus:ring-[var(--amber)]"
-                  />
-                </td>
-                <td className="px-5 py-3 text-right font-mono text-fg">
-                  {peso(parseFloat(product.base_price) * quantity)}
-                </td>
-                <td className="px-5 py-3 text-right">
-                  <button onClick={() => remove(product.id)} className="text-muted hover:text-[var(--status-danger)]">
-                    <Trash2 size={16} />
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {items.map((item) => {
+              const { product, variation, quantity } = item
+              const key = cartItemKey(item)
+              return (
+                <tr key={key} className="border-b border-border last:border-0">
+                  <td className="px-5 py-3">
+                    <p className="text-fg">{product.name}</p>
+                    {variation && <p className="text-xs text-walnut">Finish: {variation.name}</p>}
+                    <p className="text-xs text-muted">{peso(product.base_price)} each</p>
+                  </td>
+                  <td className="px-5 py-3">
+                    <input
+                      type="number"
+                      min="1"
+                      value={quantity}
+                      onChange={(e) => setQty(key, Number(e.target.value))}
+                      className="w-16 rounded-[var(--radius-sm)] border border-border bg-bg px-2 py-1 text-sm text-fg outline-none focus:ring-2 focus:ring-[var(--amber)]"
+                    />
+                  </td>
+                  <td className="px-5 py-3 text-right font-mono text-fg">
+                    {peso(parseFloat(product.base_price) * quantity)}
+                  </td>
+                  <td className="px-5 py-3 text-right">
+                    <button onClick={() => remove(key)} className="text-muted hover:text-[var(--status-danger)]">
+                      <Trash2 size={16} />
+                    </button>
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       </Card>

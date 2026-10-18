@@ -18,7 +18,7 @@ class ProductInsights
     /** @return array<string, mixed> */
     public function for(Product $product): array
     {
-        $items = OrderItem::query()->where('product_id', $product->id)->get(['id', 'order_id', 'quantity', 'line_total']);
+        $items = OrderItem::query()->where('product_id', $product->id)->get(['id', 'order_id', 'quantity', 'line_total', 'variation_name']);
         $itemIds = $items->pluck('id')->all();
         $orderIds = $items->pluck('order_id')->unique()->all();
 
@@ -54,12 +54,23 @@ class ProductInsights
 
         $ratingAvg = $product->reviews()->avg('rating');
 
+        // Best-selling colour variation (by units) among non-cancelled orders.
+        $byVariation = $soldItems
+            ->filter(fn (OrderItem $i): bool => $i->variation_name !== null)
+            ->groupBy(fn (OrderItem $i): string => (string) $i->variation_name)
+            ->map(fn (Collection $g): int => (int) $g->sum('quantity'))
+            ->sortDesc();
+        $topVariant = $byVariation->isNotEmpty()
+            ? ['name' => (string) $byVariation->keys()->first(), 'units' => $byVariation->first()]
+            : null;
+
         return [
             'units_sold' => (int) $soldItems->sum('quantity'),
             'revenue' => round((float) $soldItems->sum(fn (OrderItem $i): float => (float) $i->line_total), 2),
             'orders_count' => $activeCount,
             'rating_avg' => $ratingAvg !== null ? round((float) $ratingAvg, 1) : null,
             'rating_count' => $product->reviews()->count(),
+            'top_variant' => $topVariant,
             'on_time_rate' => $delivered->count() > 0 ? round($onTime / $delivered->count() * 100, 1) : null,
             'delayed_rate' => $activeCount > 0 ? round($active->filter(fn (Order $o): bool => (bool) $o->is_delayed)->count() / $activeCount * 100, 1) : 0.0,
             'defect_rate' => $qcTotal > 0 ? round($qcFailed / $qcTotal * 100, 1) : 0.0,
