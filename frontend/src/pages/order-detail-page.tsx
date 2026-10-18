@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, AlertTriangle, Sparkles } from 'lucide-react'
+import { ArrowLeft, AlertTriangle, Sparkles, Gauge } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { StatusPill } from '@/components/ui/status-pill'
@@ -23,6 +23,71 @@ const DELIVERY_STATUS_COLOR: Record<string, string> = {
 }
 
 const PRODUCTION_STATES: OrderState[] = ['IN_PRODUCTION', 'QUALITY_CHECK', 'REWORK']
+const PRODUCTION_OR_LATER: OrderState[] = ['IN_PRODUCTION', 'QUALITY_CHECK', 'REWORK', 'READY_FOR_DELIVERY', 'OUT_FOR_DELIVERY', 'DELIVERED', 'COMPLETED']
+
+// How far through the fulfillment lifecycle each state is.
+const FSM_PROGRESS: Record<OrderState, number> = {
+  PLACED: 10, CONFIRMED: 25, IN_PRODUCTION: 45, QUALITY_CHECK: 60, REWORK: 50,
+  READY_FOR_DELIVERY: 75, OUT_FOR_DELIVERY: 90, DELIVERED: 100, COMPLETED: 100, CANCELLED: 0,
+}
+
+function DashMeter({ label, value, tone }: { label: string; value: number; tone: string }) {
+  return (
+    <div className="rounded-[var(--radius-sm)] border border-border p-3">
+      <p className="text-xs text-muted">{label}</p>
+      <p className="mt-0.5 font-display text-2xl text-fg">{value}%</p>
+      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-surface-2">
+        <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(Math.max(value, 0), 100)}%`, backgroundColor: tone }} />
+      </div>
+    </div>
+  )
+}
+
+function DashTile({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="rounded-[var(--radius-sm)] border border-border p-3">
+      <p className="text-xs text-muted">{label}</p>
+      <p className="mt-0.5 font-display text-lg text-fg">{value}</p>
+    </div>
+  )
+}
+
+/** Per-order dashboard: fulfillment / payment / production progress + key figures. */
+function OrderDashboard({ order }: { order: Order }) {
+  const { has } = useAuth()
+  const production = useProduction(order.id, has('manufacturing.view') && PRODUCTION_OR_LATER.includes(order.status))
+
+  const items = order.items ?? []
+  const units = items.reduce((s, i) => s + i.quantity, 0)
+  const total = parseFloat(order.total) || 0
+  const paid = parseFloat(order.amount_paid) || 0
+  const paymentPct = total > 0 ? Math.round((paid / total) * 100) : 0
+  const fulfillment = FSM_PROGRESS[order.status] ?? 0
+
+  const prodItems = production.data?.items ?? []
+  const productionPct = prodItems.length
+    ? Math.round(prodItems.reduce((s, i) => s + i.percent, 0) / prodItems.length)
+    : null
+
+  const placedDays = order.placed_at ? Math.max(0, Math.floor((Date.now() - new Date(order.placed_at).getTime()) / 86_400_000)) : null
+
+  return (
+    <Card className="space-y-4">
+      <h2 className="flex items-center gap-2 font-display text-lg text-fg"><Gauge size={18} /> Order dashboard</h2>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <DashMeter label="Fulfillment" value={fulfillment} tone="var(--walnut)" />
+        <DashMeter label="Payment" value={paymentPct} tone="var(--status-success, #3f7d4a)" />
+        {productionPct != null && <DashMeter label="Production" value={productionPct} tone="var(--status-active, #2f6f9f)" />}
+      </div>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <DashTile label="Items" value={items.length} />
+        <DashTile label="Units" value={units} />
+        <DashTile label="Paid" value={`${peso(paid)} / ${peso(total)}`} />
+        <DashTile label="Days since placed" value={placedDays ?? '—'} />
+      </div>
+    </Card>
+  )
+}
 // Delivery-stage moves are driven by the Deliveries workflow (assign a driver → mark
 // picked up → capture proof). Firing them as generic FSM buttons from the order page
 // would either desync the delivery record or fail the proof guard, so they're not
@@ -266,6 +331,8 @@ export function OrderDetailPage() {
           Past its expected delivery of {new Date(order.expected_delivery_at).toLocaleDateString()} — the customer has been notified.
         </p>
       )}
+
+      <OrderDashboard order={order} />
 
       <Card><FsmStepper state={order.status} /></Card>
 

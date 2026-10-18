@@ -13,11 +13,11 @@ export function useShopFloor() {
   return useQuery({ queryKey: ['shop-floor'], queryFn: fetchShopFloor, refetchInterval: 10_000 })
 }
 
-export function useProduction(orderId: number) {
+export function useProduction(orderId: number, enabled = true) {
   return useQuery({
     queryKey: ['production', orderId],
     queryFn: () => fetchProduction(orderId),
-    enabled: !!orderId,
+    enabled: enabled && !!orderId,
     refetchInterval: 10_000,
   })
 }
