@@ -9,14 +9,23 @@ import { useCreateProduct, useProducts } from '@/hooks/use-products'
 import { useAuth } from '@/hooks/use-auth'
 import { useCart } from '@/stores/cart'
 
+const STATUS_FILTERS = [
+  { value: '', label: 'All' },
+  { value: 'PUBLISHED', label: 'Published' },
+  { value: 'DRAFT', label: 'Drafts' },
+  { value: 'ARCHIVED', label: 'Archived' },
+]
+
 export function CatalogPage() {
   const navigate = useNavigate()
   const { has } = useAuth()
-  const { data, isLoading } = useProducts()
+  const [status, setStatus] = useState('')
+  const { data, isLoading } = useProducts(status || undefined)
   const create = useCreateProduct()
   const cartCount = useCart((s) => s.count())
   const [open, setOpen] = useState(false)
   const canManage = has('products.create')
+  const canFilter = has('products.viewAny')
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -40,6 +49,22 @@ export function CatalogPage() {
           )}
         </div>
       </div>
+
+      {canFilter && (
+        <div className="flex flex-wrap gap-2">
+          {STATUS_FILTERS.map((f) => (
+            <button
+              key={f.value}
+              onClick={() => setStatus(f.value)}
+              className={`rounded-full border px-3.5 py-1.5 text-sm transition-colors ${
+                status === f.value ? 'border-walnut bg-walnut text-walnut-foreground' : 'border-border bg-surface text-muted hover:text-fg'
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {open && canManage && (
         <Card className="space-y-4">
