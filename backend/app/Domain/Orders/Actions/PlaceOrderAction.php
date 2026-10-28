@@ -30,7 +30,7 @@ class PlaceOrderAction
         return DB::transaction(function () use ($customer, $items, $deliveryAddress, $notes, $voucherCode, $paymentMethod) {
             $subtotal = 0.0;
             $rows = [];
-            $maxLeadDays = 0;
+            $totalLeadDays = 0;
 
             foreach ($items as $line) {
                 $product = Product::find($line['product_id']);
@@ -40,8 +40,10 @@ class PlaceOrderAction
                     ]);
                 }
 
-                $maxLeadDays = max($maxLeadDays, (int) ($product->lead_time_days ?? 0));
                 $qty = max(1, (int) $line['quantity']);
+                // Production runs one piece at a time, so lead times stack: every unit of
+                // every line adds its own build days to the promised delivery date.
+                $totalLeadDays += (int) ($product->lead_time_days ?? 0) * $qty;
                 $lineTotal = (float) $product->base_price * $qty;
                 $subtotal += $lineTotal;
 
@@ -66,7 +68,7 @@ class PlaceOrderAction
             }
 
             $pricing = PricingCalculator::compute($subtotal, $resolved['discount']);
-            $leadDays = $maxLeadDays > 0 ? $maxLeadDays : (int) config('analytics.target_lead_days', 14);
+            $leadDays = $totalLeadDays > 0 ? $totalLeadDays : (int) config('analytics.target_lead_days', 14);
 
             $order = Order::create([
                 'order_number' => 'PENDING',
