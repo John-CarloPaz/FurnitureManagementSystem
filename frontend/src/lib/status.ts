@@ -24,6 +24,28 @@ export const STATUS_META: Record<OrderState, { label: string; color: string }> =
   CANCELLED: { label: 'Cancelled', color: 'var(--status-danger)' },
 }
 
+/**
+ * How far through the fulfillment lifecycle each state is (0–100), delivery included:
+ * OUT_FOR_DELIVERY is 90%, and only a delivered/completed order reaches 100%.
+ */
+export const ORDER_PROGRESS: Record<OrderState, number> = {
+  PLACED: 10,
+  CONFIRMED: 25,
+  IN_PRODUCTION: 45,
+  QUALITY_CHECK: 60,
+  REWORK: 50,
+  READY_FOR_DELIVERY: 75,
+  OUT_FOR_DELIVERY: 90,
+  DELIVERED: 100,
+  COMPLETED: 100,
+  CANCELLED: 0,
+}
+
+export const orderProgress = (state: OrderState): number => ORDER_PROGRESS[state] ?? 0
+
+/** Delivered or completed — the piece is in the customer's hands. */
+export const isOrderDone = (state: OrderState): boolean => state === 'DELIVERED' || state === 'COMPLETED'
+
 /** Product catalog statuses. Mirrors docs/design/FSM.md §1. */
 export type ProductStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'
 

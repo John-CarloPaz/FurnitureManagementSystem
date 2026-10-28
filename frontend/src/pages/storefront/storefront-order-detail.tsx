@@ -12,7 +12,7 @@ import { useCreateIssue } from '@/hooks/use-issues'
 import { RETURN_REASONS, labelize } from '@/lib/returns-api'
 import { ISSUE_CATEGORIES } from '@/lib/issues-api'
 import { PAYMENTS_ENABLED } from '@/lib/features'
-import { peso } from '@/lib/status'
+import { peso, orderProgress, isOrderDone, STATUS_META } from '@/lib/status'
 
 export function StorefrontOrderDetail() {
   const { id } = useParams()
@@ -58,7 +58,34 @@ export function StorefrontOrderDetail() {
         </Card>
       )}
 
-      <Card><FsmStepper state={order.status} /></Card>
+      <Card className="space-y-4">
+        {(() => {
+          const pct = orderProgress(order.status)
+          const done = isOrderDone(order.status)
+          const cancelled = order.status === 'CANCELLED'
+          const tone = done ? 'var(--status-success, #3f7d4a)' : cancelled ? 'var(--status-danger)' : 'var(--walnut)'
+          return (
+            <div className="space-y-2">
+              <div className="flex items-end justify-between">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted">Order progress</p>
+                  <p className="mt-0.5 text-sm text-fg">
+                    {done ? 'Delivered — all done.' : cancelled ? 'This order was cancelled.' : `Currently: ${STATUS_META[order.status].label}`}
+                    {!done && !cancelled && order.expected_delivery_at ? (
+                      <span className="text-muted"> · est. delivery {new Date(order.expected_delivery_at).toLocaleDateString()}</span>
+                    ) : null}
+                  </p>
+                </div>
+                <span className="font-display text-2xl text-fg">{cancelled ? '—' : `${pct}%`}</span>
+              </div>
+              <div className="h-2.5 overflow-hidden rounded-full bg-surface-2">
+                <div className="h-full rounded-full transition-all" style={{ width: `${cancelled ? 0 : pct}%`, backgroundColor: tone }} />
+              </div>
+            </div>
+          )
+        })()}
+        <FsmStepper state={order.status} />
+      </Card>
 
       {PAYMENTS_ENABLED && order.payment_status !== 'PAID' && (order.payment_method === 'GCASH' || order.payment_method === 'BANK') && (
         <Card className="space-y-3 border-walnut" >

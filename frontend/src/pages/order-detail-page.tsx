@@ -12,7 +12,7 @@ import { ProductionItem } from '@/components/manufacturing/production-item'
 import { DeliveryTracking } from '@/components/delivery/delivery-tracking'
 import { useAuth } from '@/hooks/use-auth'
 import { apiError } from '@/lib/api-error'
-import { STATUS_META, peso, type OrderState } from '@/lib/status'
+import { STATUS_META, peso, orderProgress, type OrderState } from '@/lib/status'
 import type { Order } from '@/lib/orders-api'
 import { AxiosError } from 'axios'
 
@@ -24,12 +24,6 @@ const DELIVERY_STATUS_COLOR: Record<string, string> = {
 
 const PRODUCTION_STATES: OrderState[] = ['IN_PRODUCTION', 'QUALITY_CHECK', 'REWORK']
 const PRODUCTION_OR_LATER: OrderState[] = ['IN_PRODUCTION', 'QUALITY_CHECK', 'REWORK', 'READY_FOR_DELIVERY', 'OUT_FOR_DELIVERY', 'DELIVERED', 'COMPLETED']
-
-// How far through the fulfillment lifecycle each state is.
-const FSM_PROGRESS: Record<OrderState, number> = {
-  PLACED: 10, CONFIRMED: 25, IN_PRODUCTION: 45, QUALITY_CHECK: 60, REWORK: 50,
-  READY_FOR_DELIVERY: 75, OUT_FOR_DELIVERY: 90, DELIVERED: 100, COMPLETED: 100, CANCELLED: 0,
-}
 
 function DashMeter({ label, value, tone }: { label: string; value: number; tone: string }) {
   return (
@@ -62,7 +56,7 @@ function OrderDashboard({ order }: { order: Order }) {
   const total = parseFloat(order.total) || 0
   const paid = parseFloat(order.amount_paid) || 0
   const paymentPct = total > 0 ? Math.round((paid / total) * 100) : 0
-  const fulfillment = FSM_PROGRESS[order.status] ?? 0
+  const fulfillment = orderProgress(order.status)
 
   const prodItems = production.data?.items ?? []
   const productionPct = prodItems.length
